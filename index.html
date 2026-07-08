@@ -491,7 +491,7 @@ async function login() {
 
 function isExpired() {
   if (!isLoggedIn()) {
-    setTimeout(() => { logout(false); }, 2000);
+    setTimeout(() => { logout(); }, 2000);
     showToast("Session expired; Auto logout after 2 seconds", "error");
     render();
     return true;
