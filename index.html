@@ -243,6 +243,7 @@ input {
     <button onclick="closeEdit()" class="secondary">Cancel</button>
   </div>
 </div>
+
 <script>
 const DATA_URL = "https://cardhollow.github.io/data.json";
 
@@ -364,12 +365,32 @@ function addField() {
     <input class="siteURL" placeholder="URL">
   `;
 
-  document.getElementById("fieldsContainer")
-    .appendChild(box);
+  document.getElementById("fieldsContainer").appendChild(box);
 
-  showField(
-    document.querySelectorAll(".field-box").length - 1
-  );
+  showField(document.querySelectorAll(".field-box").length - 1);
+}
+
+function removeField() {
+  const fields = document.querySelectorAll(".field-box");
+
+  if (fields.length === 1) {
+    fields[0].querySelector(".siteName").value = "";
+    fields[0].querySelector(".siteDesc").value = "";
+    fields[0].querySelector(".siteURL").value = "";
+
+    showField(0);
+    return;
+  }
+
+  fields[currentField].remove();
+
+  const remaining = document.querySelectorAll(".field-box");
+
+  if (currentField >= remaining.length) {
+    currentField = remaining.length - 1;
+  }
+
+  showField(currentField);
 }
 
 function nextField() {
@@ -496,24 +517,12 @@ async function submitItem() {
   const payload = [];
 
   document.querySelectorAll(".field-box").forEach(field => {
-    const name = field.querySelector(".siteName").value.trim();
-    const desc = field.querySelector(".siteDesc").value.trim().substring(0, 50);
-    const url = field.querySelector(".siteURL").value.trim();
-
-    // Ignore incomplete entries
-    if (!name || !url) return;
-
     payload.push({
-      name,
-      desc,
-      url
+      name: field.querySelector(".siteName").value.trim(),
+      desc: field.querySelector(".siteDesc").value.trim().substring(0, 50),
+      url: field.querySelector(".siteURL").value.trim()
     });
   });
-
-  if (payload.length === 0) {
-    showToast("No valid website", "error");
-    return;
-  }
 
   const res = await fetch(GAS_URL, {
     method: "POST",
@@ -529,7 +538,6 @@ async function submitItem() {
   if (json.success) {
     closeEdit();
     loadData();
-
     showToast("Saved successfully", "success");
   } else {
     showToast(json.error, "error");
