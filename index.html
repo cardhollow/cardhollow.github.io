@@ -1,12 +1,379 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="https://cardhollow.github.io/favicon.svg" type="image/svg+xml">
-    <title>HOSTING PROJECTS</title>
-  </head>
-  <body>
-    THIS IS THE SITE OF CHXD
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="https://cardhollow.github.io/favicon.svg" type="image/svg+xml">
+  <title>Cardhollow Site</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 15px;
+      box-shadow: 0 3px 10px #0001;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+    }
+
+    .desc {
+      color: #555;
+    }
+
+    .no-desc {
+      font-style: italic;
+      color: #888;
+    }
+
+    .url {
+      word-break: break-all;
+      margin-top: 10px;
+    }
+
+    button {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 5px 3px 0 0;
+    }
+
+    button.delete {
+      background: #dc2626;
+    }
+
+    button.secondary {
+      background: #555;
+    }
+
+    .admin {
+      display: none;
+    }
+
+    .token-box {
+      background: #111;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      word-break: break-all;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #0008;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-box {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 350px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+    }
+
+    @media(max-width:600px) {
+      body {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Hosting Projects</h1>
+
+    <div class="admin token-box">
+      Token: <span id="tokenDisplay"></span><br>
+      Expires: <span id="expireDisplay"></span>
+    </div>
+
+    <div class="admin">
+      <button onclick="addItem()">Add Website</button>
+      <button onclick="showToken()">Show Token</button>
+      <button onclick="logout()" class="secondary">Logout</button>
+    </div>
+
+    <div id="list"></div>
+  </div>
+
+  <div class="modal" id="loginModal">
+    <div class="modal-box">
+      <h3>Login</h3>
+      <input id="username" placeholder="Username">
+      <input id="password" type="password" placeholder="Password">
+      <button onclick="login()">Login</button>
+      <button onclick="closeLogin()" class="secondary">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal" id="editModal">
+    <div class="modal-box">
+      <h3 id="editTitle">Add Website</h3>
+      <input id="siteName" placeholder="Name" maxlength="100">
+      <input id="siteDesc" placeholder="Description (Optional)" maxlength="50">
+      <input id="siteURL" placeholder="URL">
+      <button onclick="submitItem()">Save</button>
+      <button onclick="closeEdit()" class="secondary">Cancel</button>
+    </div>
+  </div>
+      
+  <script>
+    const DATA_URL = "https://cardhollow.github.io/data.json";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzV6sqIBX5jdvvgJnOokVOlQFLYjzgX-8vDy65_SE5JKL03gDgCYiGpCMIdzzem3RzHZg/exec";
+    
+    let projects = [];
+    let editIndex = -1;
+    
+    async function loadData() {
+      const res = await fetch(DATA_URL);
+      const json = await res.json();
+    
+      projects = json.data || [];
+      render();
+    }
+    
+    function render() {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+    
+      const admin = sessionStorage.getItem("token") != null;
+    
+      document.querySelectorAll(".admin")
+        .forEach(x => x.style.display = admin ? "block" : "none");
+    
+      if (projects.length === 0) {
+        list.innerHTML = `
+          <div class="card">
+            <h2>No Websites</h2>
+            <div class="no-desc">There are currently no websites available.</div>
+          </div>
+        `;
+        return;
+      }
+    
+      projects.forEach((p, index) => {
+        const div = document.createElement("div");
+    
+        div.className = "card";
+    
+        div.innerHTML = `
+          <h2>${p.name}</h2>
+    
+          <div class="${p.desc ? "desc" : "no-desc"}">
+            ${p.desc || "[No Desc]"}
+          </div>
+    
+          <div class="url">
+            URL:
+            <a href="${p.url}" target="_blank">${p.url}</a>
+          </div>
+    
+          ${admin ? `
+            <button onclick="updateItem(${index})">Update</button>
+            <button class="delete" onclick="deleteItem(${index})">Delete</button>
+          ` : ""}
+        `;
+    
+        list.appendChild(div);
+      });
+    }
+    
+    
+    function openLogin() {
+      loginModal.style.display = "flex";
+    }
+    
+    function closeLogin() {
+      loginModal.style.display = "none";
+    }
+    
+    
+    async function login() {
+      const res = await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          requestType: 101,
+          user: username.value,
+          code: password.value
+        })
+      });
+    
+      const json = await res.json();
+    
+      if (json.success) {
+        sessionStorage.setItem("token", json.token);
+        sessionStorage.setItem("expires", json.expires);
+    
+        closeLogin();
+        render();
+      } else {
+        alert(json.error);
+      }
+    }
+    
+    
+    function showToken() {
+      tokenDisplay.textContent =
+        sessionStorage.getItem("token");
+    
+      expireDisplay.textContent =
+        new Date(Number(sessionStorage.getItem("expires"))).toString();
+    }
+    
+    
+    function logout() {
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("expires");
+    
+      render();
+    }
+    
+    
+    function addItem() {
+      editIndex = -1;
+    
+      editTitle.textContent = "Add Website";
+    
+      siteName.value = "";
+      siteDesc.value = "";
+      siteURL.value = "";
+    
+      editModal.style.display = "flex";
+    }
+    
+    
+    function updateItem(i) {
+      editIndex = i;
+    
+      const p = projects[i];
+    
+      editTitle.textContent = "Update Website";
+    
+      siteName.value = p.name;
+      siteDesc.value = p.desc || "";
+      siteURL.value = p.url;
+    
+      editModal.style.display = "flex";
+    }
+    
+    
+    function closeEdit() {
+      editModal.style.display = "none";
+    }
+    
+    
+    async function submitItem() {
+      const name = siteName.value.trim();
+      const desc = siteDesc.value.trim().substring(0, 50);
+      const url = siteURL.value.trim();
+    
+      if (!name) {
+        alert("Name is required");
+        return;
+      }
+    
+      if (!url) {
+        alert("URL is required");
+        return;
+      }
+    
+      const res = await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          requestType: editIndex === -1 ? 102 : 105,
+          reqToken: sessionStorage.getItem("token"),
+          payload: {
+            name,
+            desc,
+            url
+          }
+        })
+      });
+    
+      const json = await res.json();
+    
+      if (json.success) {
+        closeEdit();
+        loadData();
+      } else {
+        alert(json.error);
+      }
+    }
+    
+    
+    async function deleteItem(i) {
+      if (!confirm("Delete " + projects[i].name + "?")) {
+        return;
+      }
+    
+      const res = await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          requestType: 103,
+          reqToken: sessionStorage.getItem("token"),
+          payload: {
+            name: projects[i].name
+          }
+        })
+      });
+    
+      const json = await res.json();
+    
+      if (json.success) {
+        loadData();
+      } else {
+        alert(json.error);
+      }
+    }
+    
+    
+    document.addEventListener("keydown", e => {
+      if (e.ctrlKey && e.shiftKey && e.code === "Space") {
+        openLogin();
+      }
+    });
+    
+    
+    loadData();
+  </script>
+
+</body>
 </html>
