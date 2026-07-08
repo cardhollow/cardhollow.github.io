@@ -108,6 +108,38 @@
       margin: 6px 0;
     }
 
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #222;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 10px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: .3s;
+      pointer-events: none;
+      max-width: 300px;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #toast.success {
+      background: #16a34a;
+    }
+
+    #toast.error {
+      background: #dc2626;
+    }
+
+    #toast.info {
+      background: #2563eb;
+    }
+
     @media(max-width:600px) {
       body {
         padding: 10px;
@@ -134,33 +166,55 @@
     <div id="list"></div>
   </div>
 
+
+  <div id="toast"></div>
+
+
   <div class="modal" id="loginModal">
     <div class="modal-box">
       <h3>Login</h3>
+
       <input id="username" placeholder="Username">
       <input id="password" type="password" placeholder="Password">
+
       <button onclick="login()">Login</button>
       <button onclick="closeLogin()" class="secondary">Cancel</button>
     </div>
   </div>
 
+
   <div class="modal" id="editModal">
     <div class="modal-box">
       <h3 id="editTitle">Add Website</h3>
+
       <input id="siteName" placeholder="Name" maxlength="100">
       <input id="siteDesc" placeholder="Description (Optional)" maxlength="50">
       <input id="siteURL" placeholder="URL">
+
       <button onclick="submitItem()">Save</button>
       <button onclick="closeEdit()" class="secondary">Cancel</button>
     </div>
   </div>
-      
   <script>
     const DATA_URL = "https://cardhollow.github.io/data.json";
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzV6sqIBX5jdvvgJnOokVOlQFLYjzgX-8vDy65_SE5JKL03gDgCYiGpCMIdzzem3RzHZg/exec";
+    
+    const GAS_URL =
+    "https://script.google.com/macros/s/AKfycbzV6sqIBX5jdvvgJnOokVOlQFLYjzgX-8vDy65_SE5JKL03gDgCYiGpCMIdzzem3RzHZg/exec";
     
     let projects = [];
     let editIndex = -1;
+    
+    function showToast(message, type = "info") {
+      const toast = document.getElementById("toast");
+    
+      toast.textContent = message;
+      toast.className = "";
+      toast.classList.add(type, "show");
+    
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3000);
+    }
     
     async function loadData() {
       const res = await fetch(DATA_URL);
@@ -183,7 +237,9 @@
         list.innerHTML = `
           <div class="card">
             <h2>No Websites</h2>
-            <div class="no-desc">There are currently no websites available.</div>
+            <div class="no-desc">
+              There are currently no websites available.
+            </div>
           </div>
         `;
         return;
@@ -216,7 +272,6 @@
       });
     }
     
-    
     function openLogin() {
       loginModal.style.display = "flex";
     }
@@ -225,47 +280,60 @@
       loginModal.style.display = "none";
     }
     
-    
     async function login() {
-      const res = await fetch(GAS_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          requestType: 101,
-          user: username.value,
-          code: password.value
-        })
-      });
+      try {
+        const res = await fetch(GAS_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            requestType: 101,
+            user: username.value,
+            code: password.value
+          })
+        });
     
-      const json = await res.json();
+        const json = await res.json();
     
-      if (json.success) {
-        sessionStorage.setItem("token", json.token);
-        sessionStorage.setItem("expires", json.expires);
+        if (json.success) {
+          sessionStorage.setItem("token", json.token);
+          sessionStorage.setItem("expires", json.expires);
     
-        closeLogin();
-        render();
-      } else {
-        alert(json.error);
+          closeLogin();
+          render();
+    
+          showToast("Login successful", "success");
+        } else {
+          let msg = json.error;
+    
+          if (json.attemptCap !== undefined) {
+            msg += " Attempts left: " + json.attemptCap;
+          }
+    
+          showToast(msg, "error");
+        }
+    
+      } catch (err) {
+        showToast("Connection failed", "error");
       }
     }
-    
     
     function showToken() {
       tokenDisplay.textContent =
         sessionStorage.getItem("token");
     
       expireDisplay.textContent =
-        new Date(Number(sessionStorage.getItem("expires"))).toString();
+        new Date(
+          Number(sessionStorage.getItem("expires"))
+        ).toString();
     }
-    
     
     function logout() {
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("expires");
     
       render();
-    }
     
+      showToast("Logged out", "info");
+    }
     
     function addItem() {
       editIndex = -1;
@@ -278,7 +346,6 @@
     
       editModal.style.display = "flex";
     }
-    
     
     function updateItem(i) {
       editIndex = i;
@@ -294,11 +361,9 @@
       editModal.style.display = "flex";
     }
     
-    
     function closeEdit() {
       editModal.style.display = "none";
     }
-    
     
     async function submitItem() {
       const name = siteName.value.trim();
@@ -306,12 +371,12 @@
       const url = siteURL.value.trim();
     
       if (!name) {
-        alert("Name is required");
+        showToast("Name is required", "error");
         return;
       }
     
       if (!url) {
-        alert("URL is required");
+        showToast("URL is required", "error");
         return;
       }
     
@@ -333,11 +398,12 @@
       if (json.success) {
         closeEdit();
         loadData();
+    
+        showToast("Saved successfully", "success");
       } else {
-        alert(json.error);
+        showToast(json.error, "error");
       }
     }
-    
     
     async function deleteItem(i) {
       if (!confirm("Delete " + projects[i].name + "?")) {
@@ -359,11 +425,12 @@
     
       if (json.success) {
         loadData();
+    
+        showToast("Deleted successfully", "success");
       } else {
-        alert(json.error);
+        showToast(json.error, "error");
       }
     }
-    
     
     document.addEventListener("keydown", e => {
       if (e.ctrlKey && e.shiftKey && e.code === "Space") {
@@ -371,9 +438,7 @@
       }
     });
     
-    
     loadData();
   </script>
-
-</body>
+ </body>
 </html>
