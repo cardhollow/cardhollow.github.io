@@ -1,444 +1,575 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="https://cardhollow.github.io/favicon.svg" type="image/svg+xml">
-  <title>Cardhollow Site</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="https://cardhollow.github.io/favicon.svg" type="image/svg+xml">
+<title>Cardhollow Site</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+* {
+  box-sizing: border-box;
+}
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f7fa;
-      color: #222;
-      margin: 0;
-      padding: 20px;
-    }
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f7fa;
+  color: #222;
+  margin: 0;
+  padding: 20px;
+}
 
-    .container {
-      max-width: 800px;
-      margin: auto;
-    }
+.container {
+  max-width: 800px;
+  margin: auto;
+}
 
-    h1 {
-      text-align: center;
-    }
+h1 {
+  text-align: center;
+}
 
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 15px;
-      box-shadow: 0 3px 10px #0001;
-    }
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 15px;
+  box-shadow: 0 3px 10px #0001;
+}
 
-    .card h2 {
-      margin: 0 0 8px;
-    }
+.card h2 {
+  margin: 0 0 8px;
+}
 
-    .desc {
-      color: #555;
-    }
+.desc {
+  color: #555;
+}
 
-    .no-desc {
-      font-style: italic;
-      color: #888;
-    }
+.no-desc {
+  font-style: italic;
+  color: #888;
+}
 
-    .url {
-      word-break: break-all;
-      margin-top: 10px;
-    }
+.url {
+  word-break: break-all;
+  margin-top: 10px;
+}
 
-    button {
-      border: none;
-      background: #2563eb;
-      color: white;
-      padding: 8px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin: 5px 3px 0 0;
-    }
+button {
+  border: none;
+  background: #2563eb;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 5px 3px 0 0;
+}
 
-    button.delete {
-      background: #dc2626;
-    }
+button.delete {
+  background: #dc2626;
+}
+button.red {
+  background: #dc2626;
+}
+button.secondary {
+  background: #555;
+}
 
-    button.secondary {
-      background: #555;
-    }
+.admin {
+  display: none;
+}
 
-    .admin {
-      display: none;
-    }
+.admin-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
 
-    .token-box {
-      background: #111;
-      color: white;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      word-break: break-all;
-    }
+.token-box {
+  background: #111;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  word-break: break-all;
+}
 
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: #0008;
-      justify-content: center;
-      align-items: center;
-    }
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #0008;
+  justify-content: center;
+  align-items: center;
+}
 
-    .modal-box {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 350px;
-    }
+.modal-box {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 350px;
+}
 
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-    }
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
+}
 
-    #toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #222;
-      color: white;
-      padding: 12px 18px;
-      border-radius: 10px;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: .3s;
-      pointer-events: none;
-      max-width: 300px;
-    }
+.field-box {
+  display: none;
+}
 
-    #toast.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
+.field-box.active {
+  display: block;
+}
 
-    #toast.success {
-      background: #16a34a;
-    }
+.field-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
 
-    #toast.error {
-      background: #dc2626;
-    }
+#fieldCounter {
+  font-size: 14px;
+  color: #555;
+}
 
-    #toast.info {
-      background: #2563eb;
-    }
+#toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #222;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: .3s;
+  pointer-events: none;
+  max-width: 300px;
+}
 
-    @media(max-width:600px) {
-      body {
-        padding: 10px;
-      }
-    }
-  </style>
+#toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#toast.success {
+  background: #16a34a;
+}
+
+#toast.error {
+  background: #dc2626;
+}
+
+#toast.info {
+  background: #2563eb;
+}
+
+@media(max-width:600px) {
+  body {
+    padding: 10px;
+  }
+}
+</style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Hosting Projects</h1>
 
-    <div class="admin token-box">
-      Token: <span id="tokenDisplay"></span><br>
-      Expires: <span id="expireDisplay"></span>
-    </div>
+<div class="container">
+  <h1>Hosting Projects</h1>
 
-    <div class="admin">
-      <button onclick="addItem()">Add Website</button>
-      <button onclick="showToken()">Show Token</button>
-      <button onclick="logout()" class="secondary">Logout</button>
-    </div>
-
-    <div id="list"></div>
+  <div class="admin token-box">
+    Token: <span id="tokenDisplay"></span>
+    <br>
+    Expires: <span id="expireDisplay"></span>
   </div>
 
-
-  <div id="toast"></div>
-
-
-  <div class="modal" id="loginModal">
-    <div class="modal-box">
-      <h3>Login</h3>
-
-      <input id="username" placeholder="Username">
-      <input id="password" type="password" placeholder="Password">
-
-      <button onclick="login()">Login</button>
-      <button onclick="closeLogin()" class="secondary">Cancel</button>
-    </div>
+  <div class="admin admin-buttons">
+    <button onclick="addItem()">Add Website</button>
+    <button onclick="showToken()">Show Token</button>
+    <button onclick="logout()" class="secondary">Logout</button>
   </div>
 
+  <div id="list"></div>
+</div>
 
-  <div class="modal" id="editModal">
-    <div class="modal-box">
-      <h3 id="editTitle">Add Website</h3>
+<div id="toast"></div>
 
-      <input id="siteName" placeholder="Name" maxlength="100">
-      <input id="siteDesc" placeholder="Description (Optional)" maxlength="50">
-      <input id="siteURL" placeholder="URL">
 
-      <button onclick="submitItem()">Save</button>
-      <button onclick="closeEdit()" class="secondary">Cancel</button>
-    </div>
+<div class="modal" id="loginModal">
+  <div class="modal-box">
+    <h3>Login</h3>
+
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+    <button onclick="closeLogin()" class="secondary">Cancel</button>
   </div>
-  <script>
-    const DATA_URL = "https://cardhollow.github.io/data.json";
-    
-    const GAS_URL =
-    "https://script.google.com/macros/s/AKfycbzV6sqIBX5jdvvgJnOokVOlQFLYjzgX-8vDy65_SE5JKL03gDgCYiGpCMIdzzem3RzHZg/exec";
-    
-    let projects = [];
-    let editIndex = -1;
-    
-    function showToast(message, type = "info") {
-      const toast = document.getElementById("toast");
-    
-      toast.textContent = message;
-      toast.className = "";
-      toast.classList.add(type, "show");
-    
-      setTimeout(() => {
-        toast.classList.remove("show");
-      }, 3000);
-    }
-    
-    async function loadData() {
-      const res = await fetch(DATA_URL);
-      const json = await res.json();
-    
-      projects = json.data || [];
-      render();
-    }
-    
-    function render() {
-      const list = document.getElementById("list");
-      list.innerHTML = "";
-    
-      const admin = sessionStorage.getItem("token") != null;
-    
-      document.querySelectorAll(".admin")
-        .forEach(x => x.style.display = admin ? "block" : "none");
-    
-      if (projects.length === 0) {
-        list.innerHTML = `
-          <div class="card">
-            <h2>No Websites</h2>
-            <div class="no-desc">
-              There are currently no websites available.
-            </div>
-          </div>
-        `;
-        return;
-      }
-    
-      projects.forEach((p, index) => {
-        const div = document.createElement("div");
-    
-        div.className = "card";
-    
-        div.innerHTML = `
-          <h2>${p.name}</h2>
-    
-          <div class="${p.desc ? "desc" : "no-desc"}">
-            ${p.desc || "[No Desc]"}
-          </div>
-    
-          <div class="url">
-            URL:
-            <a href="${p.url}" target="_blank">${p.url}</a>
-          </div>
-    
-          ${admin ? `
-            <button onclick="updateItem(${index})">Update</button>
-            <button class="delete" onclick="deleteItem(${index})">Delete</button>
-          ` : ""}
-        `;
-    
-        list.appendChild(div);
-      });
-    }
-    
-    function openLogin() {
-      loginModal.style.display = "flex";
-    }
-    
-    function closeLogin() {
-      loginModal.style.display = "none";
-    }
-    
-    async function login() {
-      try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            requestType: 101,
-            user: username.value,
-            code: password.value
-          })
-        });
-    
-        const json = await res.json();
-    
-        if (json.success) {
-          sessionStorage.setItem("token", json.token);
-          sessionStorage.setItem("expires", json.expires);
-    
-          closeLogin();
-          render();
-    
-          showToast("Login successful", "success");
-        } else {
-          let msg = json.error;
-    
-          if (json.attemptCap !== undefined) {
-            msg += " Attempts left: " + json.attemptCap;
-          }
-    
-          showToast(msg, "error");
-        }
-    
-      } catch (err) {
-        showToast("Connection failed", "error");
-      }
-    }
-    
-    function showToken() {
-      tokenDisplay.textContent =
-        sessionStorage.getItem("token");
-    
-      expireDisplay.textContent =
-        new Date(
-          Number(sessionStorage.getItem("expires"))
-        ).toString();
-    }
-    
-    function logout() {
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("expires");
-    
-      render();
-    
-      showToast("Logged out", "info");
-    }
-    
-    function addItem() {
-      editIndex = -1;
-    
-      editTitle.textContent = "Add Website";
-    
-      siteName.value = "";
-      siteDesc.value = "";
-      siteURL.value = "";
-    
-      editModal.style.display = "flex";
-    }
-    
-    function updateItem(i) {
-      editIndex = i;
-    
-      const p = projects[i];
-    
-      editTitle.textContent = "Update Website";
-    
-      siteName.value = p.name;
-      siteDesc.value = p.desc || "";
-      siteURL.value = p.url;
-    
-      editModal.style.display = "flex";
-    }
-    
-    function closeEdit() {
-      editModal.style.display = "none";
-    }
-    
-    async function submitItem() {
-      const name = siteName.value.trim();
-      const desc = siteDesc.value.trim().substring(0, 50);
-      const url = siteURL.value.trim();
-    
-      if (!name) {
-        showToast("Name is required", "error");
-        return;
-      }
-    
-      if (!url) {
-        showToast("URL is required", "error");
-        return;
-      }
-    
-      const res = await fetch(GAS_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          requestType: editIndex === -1 ? 102 : 105,
-          reqToken: sessionStorage.getItem("token"),
-          payload: {
-            name,
-            desc,
-            url
-          }
-        })
-      });
-    
-      const json = await res.json();
-    
-      if (json.success) {
-        closeEdit();
-        loadData();
-    
-        showToast("Saved successfully", "success");
-      } else {
-        showToast(json.error, "error");
-      }
-    }
-    
-    async function deleteItem(i) {
-      if (!confirm("Delete " + projects[i].name + "?")) {
-        return;
-      }
-    
-      const res = await fetch(GAS_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          requestType: 103,
-          reqToken: sessionStorage.getItem("token"),
-          payload: {
-            name: projects[i].name
-          }
-        })
-      });
-    
-      const json = await res.json();
-    
-      if (json.success) {
-        loadData();
-    
-        showToast("Deleted successfully", "success");
-      } else {
-        showToast(json.error, "error");
-      }
-    }
-    
-    document.addEventListener("keydown", e => {
-      if (e.ctrlKey && e.shiftKey && e.code === "Space") {
-        openLogin();
-      }
+</div>
+
+
+<div class="modal" id="editModal">
+  <div class="modal-box">
+    <h3 id="editTitle">Add Website</h3>
+
+    <div id="fieldsContainer">
+
+      <div class="field-box active">
+        <input class="siteName" placeholder="Name" maxlength="100">
+        <input class="siteDesc" placeholder="Description (Optional)" maxlength="50">
+        <input class="siteURL" placeholder="URL">
+      </div>
+
+    </div>
+
+    <button onclick="addField()">Add Field</button>
+    <button class="red" onclick="removeField()">Remove Field</button>
+
+    <div class="field-controls">
+      <button onclick="previousField()" class="secondary">&lt;</button>
+
+      <span id="fieldCounter">
+        1 / 1
+      </span>
+
+      <button onclick="nextField()" class="secondary">&gt;</button>
+    </div>
+
+    <button onclick="submitItem()">Save</button>
+    <button onclick="closeEdit()" class="secondary">Cancel</button>
+  </div>
+</div>
+<script>
+const DATA_URL = "https://cardhollow.github.io/data.json";
+
+const GAS_URL =
+"https://script.google.com/macros/s/AKfycbzV6sqIBX5jdvvgJnOokVOlQFLYjzgX-8vDy65_SE5JKL03gDgCYiGpCMIdzzem3RzHZg/exec";
+
+let projects = [];
+let editIndex = -1;
+let currentField = 0;
+
+function showToast(message, type = "info") {
+  const toast = document.getElementById("toast");
+
+  toast.textContent = message;
+  toast.className = "";
+  toast.classList.add(type, "show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
+}
+
+async function loadData() {
+  const res = await fetch(DATA_URL);
+  const json = await res.json();
+
+  projects = json.data || [];
+
+  render();
+}
+
+function render() {
+  const list = document.getElementById("list");
+
+  list.innerHTML = "";
+
+  const admin = sessionStorage.getItem("token") != null;
+
+  document.querySelectorAll(".admin")
+    .forEach(x => x.style.display = admin ? "block" : "none");
+
+  if (projects.length === 0) {
+    list.innerHTML = `
+      <div class="card">
+        <h2>No Websites</h2>
+        <div class="no-desc">
+          There are currently no websites available.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  projects.forEach((p, index) => {
+    const div = document.createElement("div");
+
+    div.className = "card";
+
+    div.innerHTML = `
+      <h2>${p.name}</h2>
+
+      <div class="${p.desc ? "desc" : "no-desc"}">
+        ${p.desc || "[No Desc]"}
+      </div>
+
+      <div class="url">
+        URL:
+        <a href="${p.url}" target="_blank">${p.url}</a>
+      </div>
+
+      ${admin ? `
+        <button onclick="updateItem(${index})">
+          Update
+        </button>
+
+        <button class="delete" onclick="deleteItem(${index})">
+          Delete
+        </button>
+      ` : ""}
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+function updateCounter() {
+  const fields = document.querySelectorAll(".field-box");
+
+  document.getElementById("fieldCounter").textContent =
+    (currentField + 1) + " / " + fields.length;
+}
+
+function showField(index) {
+  const fields = document.querySelectorAll(".field-box");
+
+  if (index < 0 || index >= fields.length) {
+    return;
+  }
+
+  fields.forEach(field =>
+    field.classList.remove("active")
+  );
+
+  fields[index].classList.add("active");
+
+  currentField = index;
+
+  updateCounter();
+}
+
+function addField() {
+  const box = document.createElement("div");
+
+  box.className = "field-box";
+
+  box.innerHTML = `
+    <input class="siteName" placeholder="Name" maxlength="100">
+    <input class="siteDesc" placeholder="Description (Optional)" maxlength="50">
+    <input class="siteURL" placeholder="URL">
+  `;
+
+  document.getElementById("fieldsContainer")
+    .appendChild(box);
+
+  showField(
+    document.querySelectorAll(".field-box").length - 1
+  );
+}
+
+function nextField() {
+  const fields = document.querySelectorAll(".field-box");
+
+  if (currentField < fields.length - 1) {
+    showField(currentField + 1);
+  }
+}
+
+function previousField() {
+  if (currentField > 0) {
+    showField(currentField - 1);
+  }
+}
+
+function clearFields() {
+  document.getElementById("fieldsContainer").innerHTML = `
+    <div class="field-box active">
+      <input class="siteName" placeholder="Name" maxlength="100">
+      <input class="siteDesc" placeholder="Description (Optional)" maxlength="50">
+      <input class="siteURL" placeholder="URL">
+    </div>
+  `;
+
+  currentField = 0;
+
+  updateCounter();
+}
+
+function openLogin() {
+  loginModal.style.display = "flex";
+}
+
+function closeLogin() {
+  loginModal.style.display = "none";
+}
+
+async function login() {
+  try {
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        requestType: 101,
+        user: username.value,
+        code: password.value
+      })
     });
-    
+
+    const json = await res.json();
+
+    if (json.success) {
+      sessionStorage.setItem("token", json.token);
+      sessionStorage.setItem("expires", json.expires);
+
+      closeLogin();
+      render();
+
+      showToast("Login successful", "success");
+    } else {
+      let msg = json.error;
+
+      if (json.attemptCap !== undefined) {
+        msg += " Attempts left: " + json.attemptCap;
+      }
+
+      showToast(msg, "error");
+    }
+
+  } catch (e) {
+    showToast("Connection failed", "error");
+  }
+}
+
+function showToken() {
+  tokenDisplay.textContent = sessionStorage.getItem("token");
+
+  expireDisplay.textContent =
+    new Date(Number(sessionStorage.getItem("expires"))).toString();
+}
+
+function logout() {
+  sessionStorage.removeItem("token");
+  sessionStorage.removeItem("expires");
+
+  render();
+
+  showToast("Logged out", "info");
+}
+
+function addItem() {
+  editIndex = -1;
+
+  editTitle.textContent = "Add Website";
+
+  clearFields();
+
+  editModal.style.display = "flex";
+}
+
+function updateItem(i) {
+  editIndex = i;
+
+  const p = projects[i];
+
+  editTitle.textContent = "Update Website";
+
+  clearFields();
+
+  const field = document.querySelector(".field-box");
+
+  field.querySelector(".siteName").value = p.name;
+  field.querySelector(".siteDesc").value = p.desc || "";
+  field.querySelector(".siteURL").value = p.url;
+
+  editModal.style.display = "flex";
+}
+
+function closeEdit() {
+  editModal.style.display = "none";
+}
+
+async function submitItem() {
+  const payload = [];
+
+  document.querySelectorAll(".field-box").forEach(field => {
+    const name = field.querySelector(".siteName").value.trim();
+    const desc = field.querySelector(".siteDesc").value.trim().substring(0, 50);
+    const url = field.querySelector(".siteURL").value.trim();
+
+    // Ignore incomplete entries
+    if (!name || !url) return;
+
+    payload.push({
+      name,
+      desc,
+      url
+    });
+  });
+
+  if (payload.length === 0) {
+    showToast("No valid website", "error");
+    return;
+  }
+
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      requestType: editIndex === -1 ? 102 : 105,
+      reqToken: sessionStorage.getItem("token"),
+      payload: editIndex === -1 ? payload : payload[0]
+    })
+  });
+
+  const json = await res.json();
+
+  if (json.success) {
+    closeEdit();
     loadData();
-  </script>
- </body>
+
+    showToast("Saved successfully", "success");
+  } else {
+    showToast(json.error, "error");
+  }
+}
+
+async function deleteItem(i) {
+  if (!confirm("Delete " + projects[i].name + "?")) {
+    return;
+  }
+
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      requestType: 103,
+      reqToken: sessionStorage.getItem("token"),
+      payload: {
+        name: projects[i].name
+      }
+    })
+  });
+
+  const json = await res.json();
+
+  if (json.success) {
+    loadData();
+    showToast("Deleted successfully", "success");
+  } else {
+    showToast(json.error, "error");
+  }
+}
+
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey && e.shiftKey && e.code === "Space") {
+    openLogin();
+  }
+});
+
+updateCounter();
+loadData();
+</script>
+</body>
 </html>
