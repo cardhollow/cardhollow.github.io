@@ -36,6 +36,10 @@ h1 {
   box-shadow: 0 3px 10px #0001;
 }
 
+.card.selected {
+  outline: 2px solid #2563eb;
+}
+
 .card h2 {
   margin: 0 0 8px;
 }
@@ -64,12 +68,11 @@ button {
   margin: 5px 3px 0 0;
 }
 
-button.delete {
-  background: #dc2626;
-}
+button.delete,
 button.red {
   background: #dc2626;
 }
+
 button.secondary {
   background: #555;
 }
@@ -82,6 +85,7 @@ button.secondary {
   display: flex;
   gap: 8px;
   margin-bottom: 15px;
+  flex-wrap: wrap;
 }
 
 .token-box {
@@ -136,6 +140,20 @@ input {
   color: #555;
 }
 
+.select-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.select-row input {
+  width: auto;
+  margin: 0;
+}
+
 #toast {
   position: fixed;
   bottom: 20px;
@@ -177,18 +195,18 @@ input {
 </head>
 
 <body>
-
 <div class="container">
   <h1>Hosting Projects</h1>
 
   <div class="admin token-box">
-    Token: <span id="tokenDisplay"></span>
-    <br>
+    Token: <span id="tokenDisplay"></span><br>
     Expires: <span id="expireDisplay"></span>
   </div>
 
   <div class="admin admin-buttons">
     <button onclick="addItem()">Add Website</button>
+    <button onclick="editSelected()">Edit Selected</button>
+    <button class="red" onclick="deleteSelected()">Delete Selected</button>
     <button onclick="showToken()">Show Token</button>
     <button onclick="logout()" class="secondary">Logout</button>
   </div>
@@ -198,100 +216,93 @@ input {
 
 <div id="toast"></div>
 
-
 <div class="modal" id="loginModal">
   <div class="modal-box">
     <h3>Login</h3>
-
     <input id="username" placeholder="Username">
     <input id="password" type="password" placeholder="Password">
-
     <button onclick="login()">Login</button>
     <button onclick="closeLogin()" class="secondary">Cancel</button>
   </div>
 </div>
-
 
 <div class="modal" id="editModal">
   <div class="modal-box">
     <h3 id="editTitle">Add Website</h3>
 
     <div id="fieldsContainer">
-
       <div class="field-box active">
         <input class="siteName" placeholder="Name" maxlength="100">
         <input class="siteDesc" placeholder="Description (Optional)" maxlength="50">
         <input class="siteURL" placeholder="URL">
       </div>
-
     </div>
 
-    <button onclick="addField()">Add Field</button>
-    <button class="red" onclick="removeField()">Remove Field</button>
+    <button id="addFieldBtn" onclick="addField()">Add Field</button>
+    <button id="removeFieldBtn" class="red" onclick="removeField()">Remove Field</button>
 
     <div class="field-controls">
       <button onclick="previousField()" class="secondary">&lt;</button>
-
-      <span id="fieldCounter">
-        1 / 1
-      </span>
-
+      <span id="fieldCounter">1 / 1</span>
       <button onclick="nextField()" class="secondary">&gt;</button>
     </div>
 
-    <button onclick="submitItem()">Save</button>
+    <button id="saveBtn" onclick="submitItem()">Save</button>
     <button onclick="closeEdit()" class="secondary">Cancel</button>
   </div>
 </div>
 
 <script>
 const DATA_URL = "https://cardhollow.github.io/data.json";
-
-const GAS_URL =
-"https://script.google.com/macros/s/AKfycbzV6sqIBX5jdvvgJnOokVOlQFLYjzgX-8vDy65_SE5JKL03gDgCYiGpCMIdzzem3RzHZg/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzV6sqIBX5jdvvgJnOokVOlQFLYjzgX-8vDy65_SE5JKL03gDgCYiGpCMIdzzem3RzHZg/exec";
 
 let projects = [];
 let editIndex = -1;
 let currentField = 0;
+let editMode = "add";
+let selectedIndexes = new Set();
 
 function showToast(message, type = "info") {
   const toast = document.getElementById("toast");
-
   toast.textContent = message;
   toast.className = "";
   toast.classList.add(type, "show");
-
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 3000);
+  setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
 async function loadData() {
-  const res = await fetch(DATA_URL);
+  const res = await fetch(DATA_URL + "?t=" + Date.now());
   const json = await res.json();
-
   projects = json.data || [];
-
   render();
+}
+
+function getSelectedItems() {
+  return [...selectedIndexes]
+    .sort((a, b) => a - b)
+    .map(i => projects[i])
+    .filter(Boolean);
 }
 
 function render() {
   const list = document.getElementById("list");
-
   list.innerHTML = "";
 
   const admin = sessionStorage.getItem("token") != null;
 
-  document.querySelectorAll(".admin")
-    .forEach(x => x.style.display = admin ? "block" : "none");
+  document.querySelectorAll(".admin").forEach(x => {
+    if (x.classList.contains("admin-buttons")) {
+      x.style.display = admin ? "flex" : "none";
+    } else {
+      x.style.display = admin ? "block" : "none";
+    }
+  });
 
   if (projects.length === 0) {
     list.innerHTML = `
       <div class="card">
         <h2>No Websites</h2>
-        <div class="no-desc">
-          There are currently no websites available.
-        </div>
+        <div class="no-desc">There are currently no websites available.</div>
       </div>
     `;
     return;
@@ -299,65 +310,57 @@ function render() {
 
   projects.forEach((p, index) => {
     const div = document.createElement("div");
+    const checked = selectedIndexes.has(index) ? "checked" : "";
 
-    div.className = "card";
-
+    div.className = "card" + (selectedIndexes.has(index) ? " selected" : "");
     div.innerHTML = `
-      <h2>${p.name}</h2>
+      ${admin ? `
+        <div class="select-row">
+          <span>Select:</span>
+          <input type="checkbox" ${checked} onchange="toggleSelected(${index}, this.checked)">
+        </div>
+      ` : ""}
+
+      <h2>${p.name || "[No Name]"}</h2>
 
       <div class="${p.desc ? "desc" : "no-desc"}">
         ${p.desc || "[No Desc]"}
       </div>
 
       <div class="url">
-        URL:
-        <a href="${p.url}" target="_blank">${p.url}</a>
+        URL: ${p.url ? `<a href="${p.url}" target="_blank">${p.url}</a>` : "[No URL]"}
       </div>
-
-      ${admin ? `
-        <button onclick="updateItem(${index})">
-          Update
-        </button>
-
-        <button class="delete" onclick="deleteItem(${index})">
-          Delete
-        </button>
-      ` : ""}
     `;
-
     list.appendChild(div);
   });
 }
 
+function toggleSelected(index, checked) {
+  if (checked) selectedIndexes.add(index);
+  else selectedIndexes.delete(index);
+  render();
+}
+
 function updateCounter() {
   const fields = document.querySelectorAll(".field-box");
-
-  document.getElementById("fieldCounter").textContent =
-    (currentField + 1) + " / " + fields.length;
+  document.getElementById("fieldCounter").textContent = (currentField + 1) + " / " + fields.length;
 }
 
 function showField(index) {
   const fields = document.querySelectorAll(".field-box");
+  if (index < 0 || index >= fields.length) return;
 
-  if (index < 0 || index >= fields.length) {
-    return;
-  }
-
-  fields.forEach(field =>
-    field.classList.remove("active")
-  );
-
+  fields.forEach(field => field.classList.remove("active"));
   fields[index].classList.add("active");
 
   currentField = index;
-
   updateCounter();
 }
 
-function addField() {
+function buildFieldBox(item = {}, originalName = "") {
   const box = document.createElement("div");
-
   box.className = "field-box";
+  box.dataset.originalName = originalName || item.name || "";
 
   box.innerHTML = `
     <input class="siteName" placeholder="Name" maxlength="100">
@@ -365,19 +368,52 @@ function addField() {
     <input class="siteURL" placeholder="URL">
   `;
 
-  document.getElementById("fieldsContainer").appendChild(box);
+  box.querySelector(".siteName").value = item.name || "";
+  box.querySelector(".siteDesc").value = item.desc || "";
+  box.querySelector(".siteURL").value = item.url || "";
 
+  return box;
+}
+
+function clearFields(items = []) {
+  const fieldsContainer = document.getElementById("fieldsContainer");
+  fieldsContainer.innerHTML = "";
+
+  const list = items.length ? items : [{}];
+  list.forEach((item, i) => {
+    const box = buildFieldBox(item, item.originalName || item.name || "");
+    if (i === 0) box.classList.add("active");
+    fieldsContainer.appendChild(box);
+  });
+
+  currentField = 0;
+  updateCounter();
+  refreshEditButtons();
+}
+
+function refreshEditButtons() {
+  const showTools = editMode === "add";
+  document.getElementById("addFieldBtn").style.display = showTools ? "inline-block" : "none";
+  document.getElementById("removeFieldBtn").style.display = showTools ? "inline-block" : "none";
+  document.getElementById("saveBtn").textContent = editMode === "add" ? "Save" : "Update";
+}
+
+function addField() {
+  if (editMode !== "add") return;
+
+  const box = buildFieldBox();
+  document.getElementById("fieldsContainer").appendChild(box);
   showField(document.querySelectorAll(".field-box").length - 1);
 }
 
 function removeField() {
-  const fields = document.querySelectorAll(".field-box");
+  if (editMode !== "add") return;
 
+  const fields = document.querySelectorAll(".field-box");
   if (fields.length === 1) {
     fields[0].querySelector(".siteName").value = "";
     fields[0].querySelector(".siteDesc").value = "";
     fields[0].querySelector(".siteURL").value = "";
-
     showField(0);
     return;
   }
@@ -385,40 +421,17 @@ function removeField() {
   fields[currentField].remove();
 
   const remaining = document.querySelectorAll(".field-box");
-
-  if (currentField >= remaining.length) {
-    currentField = remaining.length - 1;
-  }
-
+  if (currentField >= remaining.length) currentField = remaining.length - 1;
   showField(currentField);
 }
 
 function nextField() {
   const fields = document.querySelectorAll(".field-box");
-
-  if (currentField < fields.length - 1) {
-    showField(currentField + 1);
-  }
+  if (currentField < fields.length - 1) showField(currentField + 1);
 }
 
 function previousField() {
-  if (currentField > 0) {
-    showField(currentField - 1);
-  }
-}
-
-function clearFields() {
-  document.getElementById("fieldsContainer").innerHTML = `
-    <div class="field-box active">
-      <input class="siteName" placeholder="Name" maxlength="100">
-      <input class="siteDesc" placeholder="Description (Optional)" maxlength="50">
-      <input class="siteURL" placeholder="URL">
-    </div>
-  `;
-
-  currentField = 0;
-
-  updateCounter();
+  if (currentField > 0) showField(currentField - 1);
 }
 
 function openLogin() {
@@ -445,21 +458,14 @@ async function login() {
     if (json.success) {
       sessionStorage.setItem("token", json.token);
       sessionStorage.setItem("expires", json.expires);
-
       closeLogin();
       render();
-
       showToast("Login successful", "success");
     } else {
       let msg = json.error;
-
-      if (json.attemptCap !== undefined) {
-        msg += " Attempts left: " + json.attemptCap;
-      }
-
+      if (json.attemptCap !== undefined) msg += " Attempts left: " + json.attemptCap;
       showToast(msg, "error");
     }
-
   } catch (e) {
     showToast("Connection failed", "error");
   }
@@ -467,45 +473,41 @@ async function login() {
 
 function showToken() {
   tokenDisplay.textContent = sessionStorage.getItem("token");
-
-  expireDisplay.textContent =
-    new Date(Number(sessionStorage.getItem("expires"))).toString();
+  expireDisplay.textContent = new Date(Number(sessionStorage.getItem("expires"))).toString();
 }
 
 function logout() {
   sessionStorage.removeItem("token");
   sessionStorage.removeItem("expires");
-
+  selectedIndexes.clear();
   render();
-
   showToast("Logged out", "info");
 }
 
 function addItem() {
   editIndex = -1;
-
+  editMode = "add";
   editTitle.textContent = "Add Website";
-
   clearFields();
-
   editModal.style.display = "flex";
 }
 
-function updateItem(i) {
-  editIndex = i;
+function editSelected() {
+  const items = getSelectedItems();
+  if (items.length === 0) {
+    showToast("Select at least one item", "error");
+    return;
+  }
 
-  const p = projects[i];
-
-  editTitle.textContent = "Update Website";
-
-  clearFields();
-
-  const field = document.querySelector(".field-box");
-
-  field.querySelector(".siteName").value = p.name;
-  field.querySelector(".siteDesc").value = p.desc || "";
-  field.querySelector(".siteURL").value = p.url;
-
+  editIndex = -1;
+  editMode = "update";
+  editTitle.textContent = "Update Selected";
+  clearFields(items.map(x => ({
+    name: x.name || "",
+    desc: x.desc || "",
+    url: x.url || "",
+    originalName: x.name || ""
+  })));
   editModal.style.display = "flex";
 }
 
@@ -514,22 +516,20 @@ function closeEdit() {
 }
 
 async function submitItem() {
-  const payload = [];
-
-  document.querySelectorAll(".field-box").forEach(field => {
-    payload.push({
-      name: field.querySelector(".siteName").value.trim(),
-      desc: field.querySelector(".siteDesc").value.trim().substring(0, 50),
-      url: field.querySelector(".siteURL").value.trim()
-    });
-  });
+  const fields = [...document.querySelectorAll(".field-box")];
+  const payload = fields.map(field => ({
+    originalName: field.dataset.originalName || "",
+    name: field.querySelector(".siteName").value.trim(),
+    desc: field.querySelector(".siteDesc").value.trim().substring(0, 50),
+    url: field.querySelector(".siteURL").value.trim()
+  }));
 
   const res = await fetch(GAS_URL, {
     method: "POST",
     body: JSON.stringify({
-      requestType: editIndex === -1 ? 102 : 105,
+      requestType: editMode === "add" ? 102 : 105,
       reqToken: sessionStorage.getItem("token"),
-      payload: editIndex === -1 ? payload : payload[0]
+      payload: editMode === "add" ? payload : payload
     })
   });
 
@@ -544,25 +544,28 @@ async function submitItem() {
   }
 }
 
-async function deleteItem(i) {
-  if (!confirm("Delete " + projects[i].name + "?")) {
+async function deleteSelected() {
+  const items = getSelectedItems();
+  if (items.length === 0) {
+    showToast("Select at least one item", "error");
     return;
   }
+
+  if (!confirm("Delete selected websites?")) return;
 
   const res = await fetch(GAS_URL, {
     method: "POST",
     body: JSON.stringify({
       requestType: 103,
       reqToken: sessionStorage.getItem("token"),
-      payload: {
-        name: projects[i].name
-      }
+      payload: items.map(x => x.name)
     })
   });
 
   const json = await res.json();
 
   if (json.success) {
+    selectedIndexes.clear();
     loadData();
     showToast("Deleted successfully", "success");
   } else {
