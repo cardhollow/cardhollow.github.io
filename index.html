@@ -284,11 +284,29 @@ function getSelectedItems() {
     .filter(Boolean);
 }
 
+function isLoggedIn() {
+  const token = sessionStorage.getItem("token");
+  const expires = Number(sessionStorage.getItem("expires"));
+
+  if (!token || !expires) {
+    return false;
+  }
+
+  if (Date.now() >= expires) {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("expires");
+    selectedIndexes.clear();
+    return false;
+  }
+
+  return true;
+}
+  
 function render() {
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  const admin = sessionStorage.getItem("token") != null;
+  const admin = isLoggedIn();
 
   document.querySelectorAll(".admin").forEach(x => {
     if (x.classList.contains("admin-buttons")) {
@@ -471,7 +489,17 @@ async function login() {
   }
 }
 
+function isExpired() {
+  if (!isLoggedIn()) {
+    setTimeout(() => { logout(false); }, 2000);
+    showToast("Session expired; Auto logout after 2 seconds", "error");
+    render();
+    return true;
+  }
+}
+
 function showToken() {
+  if (isExpired()) return;
   tokenDisplay.textContent = sessionStorage.getItem("token");
   expireDisplay.textContent = new Date(Number(sessionStorage.getItem("expires"))).toString();
 }
@@ -485,6 +513,7 @@ function logout() {
 }
 
 function addItem() {
+  if (isExpired()) return;
   editIndex = -1;
   editMode = "add";
   editTitle.textContent = "Add Website";
@@ -493,6 +522,7 @@ function addItem() {
 }
 
 function editSelected() {
+  if (isExpired()) return;
   const items = getSelectedItems();
   if (items.length === 0) {
     showToast("Select at least one item", "error");
@@ -516,6 +546,7 @@ function closeEdit() {
 }
 
 async function submitItem() {
+  if (isExpired()) return;
   const fields = [...document.querySelectorAll(".field-box")];
   const payload = fields.map(field => ({
     originalName: field.dataset.originalName || "",
@@ -545,6 +576,7 @@ async function submitItem() {
 }
 
 async function deleteSelected() {
+  if (isExpired()) return;
   const items = getSelectedItems();
   if (items.length === 0) {
     showToast("Select at least one item", "error");
