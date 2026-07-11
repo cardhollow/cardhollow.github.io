@@ -1,0 +1,1888 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Image Editor</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --panel:#ffffff;
+      --panel2:#eef3ff;
+      --text:#101828;
+      --muted:#667085;
+      --border:rgba(16,24,40,.10);
+      --shadow:0 14px 40px rgba(16,24,40,.08);
+      --radius:18px;
+      --accent:#5b7cfa;
+      --danger:#ef4444;
+      --ok:#10b981;
+    }
+    body.dark{
+      --bg:#0b1020;
+      --panel:#11182e;
+      --panel2:#101a35;
+      --text:#e8edff;
+      --muted:#9aa6cc;
+      --border:rgba(255,255,255,.10);
+      --shadow:0 14px 40px rgba(0,0,0,.28);
+      --accent:#7aa7ff;
+      --danger:#fb7185;
+      --ok:#34d399;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    button,input,select,label{font:inherit}
+    .wrap{max-width:1080px;margin:0 auto;padding:14px}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;
+      padding:10px 0 8px;
+    }
+    h1{
+      margin:0;
+      font-size:clamp(22px,4vw,32px);
+      letter-spacing:-.03em;
+    }
+    .sub{
+      color:var(--muted);
+      margin-top:6px;
+      max-width:720px;
+      line-height:1.5;
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .stack{display:flex;flex-direction:column;gap:6px}
+    .label{font-size:12px;color:var(--muted)}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 12px;border-radius:999px;
+      background:color-mix(in srgb,var(--panel2) 80%, transparent);
+      border:1px solid var(--border);
+      color:var(--text);
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:12px;
+    }
+    .card h2{
+      margin:0 0 8px;
+      font-size:18px;
+      letter-spacing:-.02em;
+    }
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:10px;
+    }
+    button{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 90%, var(--accent) 10%), var(--panel));
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      transition:.15s transform,.15s opacity,.15s background;
+      box-shadow:0 1px 0 rgba(255,255,255,.04) inset;
+    }
+    button:hover{transform:translateY(-1px)}
+    button:active{transform:translateY(0)}
+    button.primary{
+      background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 28%, var(--panel) 72%),color-mix(in srgb,var(--accent) 10%, var(--panel) 90%));
+      border-color:color-mix(in srgb,var(--accent) 28%, var(--border));
+    }
+    button.danger{
+      border-color:color-mix(in srgb,var(--danger) 35%, var(--border));
+    }
+    button.active{
+      outline:2px solid color-mix(in srgb,var(--accent) 45%, transparent);
+    }
+    input,select{
+      background:var(--panel);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 12px;
+      outline:none;
+    }
+    input[type="color"]{
+      padding:0;
+      width:48px;
+      height:42px;
+      border-radius:12px;
+      overflow:hidden;
+    }
+    input[type="range"]{padding:0;height:40px}
+    input[type="file"]{
+      padding:10px;
+      max-width:100%;
+    }
+    .canvasShell{
+      position:relative;
+      min-height:420px;
+    }
+    canvas{
+      width:100%;
+      height:min(60vh,620px);
+      display:block;
+      background:
+        linear-gradient(45deg, color-mix(in srgb,var(--panel2) 55%, transparent) 25%, transparent 25%) 0 0/24px 24px,
+        linear-gradient(-45deg, color-mix(in srgb,var(--panel2) 55%, transparent) 25%, transparent 25%) 0 12px/24px 24px,
+        linear-gradient(45deg, transparent 75%, color-mix(in srgb,var(--panel2) 55%, transparent) 75%) 12px -12px/24px 24px,
+        linear-gradient(-45deg, transparent 75%, color-mix(in srgb,var(--panel2) 55%, transparent) 75%) 12px 0/24px 24px,
+        var(--bg);
+      border-radius:16px;
+      border:1px solid var(--border);
+      touch-action:none;
+      cursor:crosshair;
+    }
+    .hint{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
+    }
+    .section{
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:color-mix(in srgb,var(--panel) 84%, var(--panel2) 16%);
+      margin-top:10px;
+    }
+    .sectionTitle{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      margin-bottom:10px;
+    }
+    .sectionTitle strong{font-size:15px}
+    .controls{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width:700px){.controls{grid-template-columns:1fr}}
+    .full{grid-column:1 / -1}
+    .mini{
+      display:flex;gap:8px;flex-wrap:wrap;align-items:center
+    }
+    .mini label{
+      display:flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:12px;
+      border:1px solid var(--border);
+      background:color-mix(in srgb,var(--panel) 82%, var(--panel2) 18%);
+    }
+    .status{
+      display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .cropTag{
+      position:absolute;
+      left:16px;top:16px;
+      padding:8px 10px;
+      border-radius:999px;
+      background:color-mix(in srgb,var(--panel) 80%, transparent);
+      border:1px solid var(--border);
+      color:var(--text);
+      backdrop-filter:blur(8px);
+      font-size:12px;
+      pointer-events:none;
+    }
+    .sep{height:1px;background:var(--border);margin:12px 0}
+    .small{font-size:12px;color:var(--muted)}
+    .resizeSwitch{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .resizeHidden{display:none !important}
+    .cropGridToggle{display:flex;align-items:center;gap:8px}
+    .sampleChip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:color-mix(in srgb,var(--panel) 82%, var(--panel2) 18%)}
+    .pickerFloating{position:fixed;z-index:80;display:none;width:200px;pointer-events:none;transform:translate(-50%,-100%)}
+    .pickerFloating.on{display:block}
+    .pickerFloating .panel{pointer-events:none;background:color-mix(in srgb,var(--panel) 92%, transparent);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(10px);padding:10px}
+    .pickerFloating .titleRow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+    .pickerFloating .titleRow strong{font-size:13px}
+    .pickerFloating .titleRow span{font-size:12px;color:var(--muted)}
+    .pickerFloating .zoomCanvas{width:100%;height:160px;border-radius:12px;border:1px solid var(--border);background:var(--bg);image-rendering:pixelated}
+    .pickerFloating .tip{margin-top:6px;font-size:11px;color:var(--muted);line-height:1.35}
+    .repairToggle{display:flex;align-items:center;gap:8px}
+    .toggleRow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .selectModeHint{font-size:12px;color:var(--muted)}
+    .hidden{display:none !important}
+    .bucketPanel{display:none}
+    .bucketPanel.on{display:block}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>Image Editor</h1>
+        <div class="sub">
+          Upload an image, draw on it, crop with draggable corners, resize it, replace colors or chroma key a target color, then download as PNG.
+        </div>
+      </div>
+      <div class="row">
+        <button id="themeBtn">Toggle Theme</button>
+        <button id="downloadBtn" class="primary">Download PNG</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="toolbar">
+  <label class="pill">
+    Upload
+    <input id="fileInput" type="file" accept="image/*" />
+  </label>
+  <button id="drawBtn" class="active">Draw</button>
+  <button id="eraseBtn">Eraser</button>
+  <button id="selectBtn">Select</button>
+  <button id="repairBtn">Repair</button>
+  <button id="cropBtn">Crop</button>
+  <button id="undoBtn">Undo</button>
+  <button id="redoBtn">Redo</button>
+</div>
+
+        <div class="canvasShell">
+          <div id="cropTag" class="cropTag" style="display:none;">Crop mode: drag corners or move the box</div>
+          <canvas id="viewCanvas"></canvas>
+        </div>
+
+        <div class="status" id="status">No image loaded yet.</div>
+        <div class="hint">
+          Draw mode paints directly on the image. Crop mode shows a box with corner handles. You can also resize or edit colors from the right panel.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Tools</h2>
+
+        
+        <div class="section">
+          <div class="sectionTitle">
+            <strong>Drawing</strong>
+            <span class="small">Pen size and color</span>
+          </div>
+          <div class="controls">
+            <div class="stack">
+              <div class="label">Pen Color</div>
+              <input id="penColor" type="color" value="#111111" />
+            </div>
+            <div class="stack">
+              <div class="label">Pen Size (px)</div>
+              <input id="penSize" type="range" min="1" max="80" value="10" />
+            </div>
+            <div class="stack full">
+              <div class="label">Brush Opacity</div>
+              <input id="brushOpacity" type="range" min="0" max="100" value="100" />
+              <div id="brushOpacityLabel" class="small">100% opacity for Draw / Erase / Repair</div>
+            </div>
+
+            <label class="mini full repairToggle"><input id="bucketToggle" type="checkbox" /> Bucket tool</label>
+
+            <div id="bucketPanel" class="controls full bucketPanel">
+              <div class="stack full">
+                <div class="label">Tolerance</div>
+                <input id="bucketTolerance" type="range" min="0" max="255" value="25" />
+                <div id="bucketToleranceLabel" class="small">25 / detection range</div>
+              </div>
+
+              <div class="stack full">
+                <div class="label">Replace By</div>
+                <select id="bucketReplaceBy">
+                  <option value="color">Color</option>
+                  <option value="opacity">Opacity</option>
+                </select>
+              </div>
+
+              <label id="bucketIgnoreOpacityRow" class="mini full"><input id="bucketIgnoreOpacity" type="checkbox" checked /> Ignore opacity</label>
+              <label id="bucketIgnoreColorRow" class="mini full hidden"><input id="bucketIgnoreColor" type="checkbox" checked /> Ignore color</label>
+
+              <div class="stack full">
+                <div class="label">Strength</div>
+                <input id="bucketStrength" type="range" min="1" max="100" value="100" />
+                <div id="bucketStrengthLabel" class="small">100% = full area application</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sectionTitle">
+            <strong>Resize</strong>
+            <span class="small">Current image size</span>
+          </div>
+
+            <span class="small">Current image size</span>
+          </div>
+          <div class="controls">
+            <div class="stack full">
+              <div class="label">Resize Type</div>
+              <select id="resizeMode">
+                <option value="dimensions">By Width / Height</option>
+                <option value="percent">By Percentage</option>
+              </select>
+            </div>
+
+            <div id="resizeDims" class="controls full">
+              <div class="stack">
+                <div class="label">Width</div>
+                <input id="resizeW" type="number" min="1" placeholder="Width" inputmode="numeric" />
+              </div>
+              <div class="stack">
+                <div class="label">Height</div>
+                <input id="resizeH" type="number" min="1" placeholder="Height" inputmode="numeric" />
+              </div>
+            </div>
+
+            <div id="resizePercentBox" class="stack full">
+              <div class="label">Resize by %</div>
+              <input id="resizePercent" type="number" min="1" placeholder="Percent" value="100" inputmode="numeric" />
+            </div>
+
+            <div class="stack full">
+              <div class="label">Options</div>
+              <div class="mini">
+                <label><input id="keepRatio" type="checkbox" checked /> Maintain aspect ratio</label>
+                <label><input id="noEnlarge" type="checkbox" /> Do not enlarge if smaller</label>
+              </div>
+            </div>
+            <button id="resizeBtn" class="primary full">Resize</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sectionTitle">
+            <strong>Crop</strong>
+            <span class="small">Drag box corners</span>
+          </div>
+          <div class="controls">
+            <label class="mini full cropGridToggle"><input id="cropGrid" type="checkbox" checked /> Show crop grid</label>
+            <button id="resetCropBtn">Reset Crop Box</button>
+            <button id="applyCropBtn" class="primary">Apply Crop</button>
+          </div>
+        </div>
+
+        <div class="section">
+  <div class="sectionTitle">
+    <strong>Chroma Edit / Color Replace</strong>
+    <span class="small">Pick from image or replace colors</span>
+  </div>
+  <div class="controls">
+    <button id="pickTargetBtn" class="primary full">Pick target color from image</button>
+
+    <div class="stack full">
+      <div class="label">Target Color</div>
+      <div class="sampleChip">
+        <input id="targetColor" type="color" value="#ffffff" />
+        <span id="pickedHex" class="small">#ffffff</span>
+      </div>
+      <div class="selectModeHint">Hover over the image while the picker is active. The floating zoom stays above your pointer.</div>
+    </div>
+
+    <label class="mini full"><input id="replaceAll" type="checkbox" /> Replace All</label>
+
+    <div class="stack">
+      <div class="label">Replace With</div>
+      <input id="replaceColor" type="color" value="#ff00ff" />
+    </div>
+
+    <div class="stack">
+      <div class="label">Replace Opacity</div>
+      <input id="replaceAlpha" type="range" min="0" max="100" value="100" />
+      <div id="replaceAlphaLabel" class="small">100% = fully opaque, 0% = fully transparent</div>
+    </div>
+
+    <div class="stack full">
+      <div class="label">Edge Smooth</div>
+      <input id="edgeFeather" type="range" min="0" max="24" value="0" />
+      <div id="edgeFeatherLabel" class="small">0px = sharp edge</div>
+    </div>
+
+    <div class="stack">
+      <div class="label">Tolerance</div>
+      <input id="tolerance" type="range" min="0" max="255" value="25" />
+    </div>
+
+    <button id="replaceBtn" class="primary full">Apply Color Replace</button>
+    <button id="chromaBtn" class="full">Apply Chroma Key</button>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sectionTitle">
+    <strong>Brush Repair</strong>
+    <span class="small">Original reference overlay</span>
+  </div>
+  <div class="controls">
+    <label class="mini full repairToggle"><input id="repairToggle" type="checkbox" /> Show original reference overlay</label>
+    <div class="stack full">
+      <div class="label">Overlay Opacity</div>
+      <input id="repairOpacity" type="range" min="0" max="100" value="35" />
+      <div id="repairOpacityLabel" class="small">35% overlay</div>
+    </div>
+    <label class="mini full repairToggle"><input id="repairInvert" type="checkbox" /> Invert Overlay</label>
+  </div>
+</div>
+
+        <div class="section">
+          <div class="sectionTitle">
+            <strong>Canvas / Export</strong>
+            <span class="small">PNG output</span>
+          </div>
+          <div class="controls">
+            <button id="clearBtn" class="danger">Clear Image</button>
+            <button id="fitBtn">Fit Image to View</button>
+          </div>
+        </div>
+
+        <div class="hint">
+          Tip: You can draw after resizing or cropping. Undo and redo work for uploads, drawing, repair, crop, resize, and color edits.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pickerFloating" class="pickerFloating" aria-hidden="true">
+  <div class="panel">
+    <div class="titleRow">
+      <strong>Color Picker</strong>
+      <span id="pickerFloatingHex">#ffffff</span>
+    </div>
+    <canvas id="pickZoomCanvas" class="zoomCanvas" width="160" height="160"></canvas>
+    <div class="tip">Move your finger or mouse to preview. Tap or click the image to sample.</div>
+  </div>
+</div>
+
+<script>
+    const viewCanvas = document.getElementById('viewCanvas');
+    const vctx = viewCanvas.getContext('2d');
+
+    const fileInput = document.getElementById('fileInput');
+    const themeBtn = document.getElementById('themeBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const drawBtn = document.getElementById('drawBtn');
+    const eraseBtn = document.getElementById('eraseBtn');
+    const selectBtn = document.getElementById('selectBtn');
+    const repairBtn = document.getElementById('repairBtn');
+    const cropBtn = document.getElementById('cropBtn');
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+
+    const penColor = document.getElementById('penColor');
+    const penSize = document.getElementById('penSize');
+    const brushOpacity = document.getElementById('brushOpacity');
+    const brushOpacityLabel = document.getElementById('brushOpacityLabel');
+    const bucketToggle = document.getElementById('bucketToggle');
+    const bucketPanel = document.getElementById('bucketPanel');
+    const bucketTolerance = document.getElementById('bucketTolerance');
+    const bucketToleranceLabel = document.getElementById('bucketToleranceLabel');
+    const bucketReplaceBy = document.getElementById('bucketReplaceBy');
+    const bucketIgnoreOpacityRow = document.getElementById('bucketIgnoreOpacityRow');
+    const bucketIgnoreOpacity = document.getElementById('bucketIgnoreOpacity');
+    const bucketIgnoreColorRow = document.getElementById('bucketIgnoreColorRow');
+    const bucketIgnoreColor = document.getElementById('bucketIgnoreColor');
+    const bucketStrength = document.getElementById('bucketStrength');
+    const bucketStrengthLabel = document.getElementById('bucketStrengthLabel');
+
+    const resizeMode = document.getElementById('resizeMode');
+    const resizeDims = document.getElementById('resizeDims');
+    const resizePercentBox = document.getElementById('resizePercentBox');
+    const resizeW = document.getElementById('resizeW');
+    const resizeH = document.getElementById('resizeH');
+    const resizePercent = document.getElementById('resizePercent');
+    const keepRatio = document.getElementById('keepRatio');
+    const noEnlarge = document.getElementById('noEnlarge');
+    const resizeBtn = document.getElementById('resizeBtn');
+
+    const cropGrid = document.getElementById('cropGrid');
+    const resetCropBtn = document.getElementById('resetCropBtn');
+    const applyCropBtn = document.getElementById('applyCropBtn');
+    const cropTag = document.getElementById('cropTag');
+
+    const pickZoomCanvas = document.getElementById('pickZoomCanvas');
+    const pickZoomCtx = pickZoomCanvas.getContext('2d');
+    const pickerFloating = document.getElementById('pickerFloating');
+    const pickerFloatingHex = document.getElementById('pickerFloatingHex');
+    const pickTargetBtn = document.getElementById('pickTargetBtn');
+    const targetColor = document.getElementById('targetColor');
+    const pickedHex = document.getElementById('pickedHex');
+    const replaceAll = document.getElementById('replaceAll');
+    const replaceColor = document.getElementById('replaceColor');
+    const tolerance = document.getElementById('tolerance');
+    const replaceAlpha = document.getElementById('replaceAlpha');
+    const replaceAlphaLabel = document.getElementById('replaceAlphaLabel');
+    const edgeFeather = document.getElementById('edgeFeather');
+    const edgeFeatherLabel = document.getElementById('edgeFeatherLabel');
+    const replaceBtn = document.getElementById('replaceBtn');
+    const chromaBtn = document.getElementById('chromaBtn');
+    const repairToggle = document.getElementById('repairToggle');
+    const repairOpacity = document.getElementById('repairOpacity');
+    const repairOpacityLabel = document.getElementById('repairOpacityLabel');
+    const repairInvert = document.getElementById('repairInvert');
+
+    const clearBtn = document.getElementById('clearBtn');
+    const fitBtn = document.getElementById('fitBtn');
+    const statusEl = document.getElementById('status');
+
+    const workCanvas = document.createElement('canvas');
+    const wctx = workCanvas.getContext('2d', { willReadFrequently: true });
+    const originalCanvas = document.createElement('canvas');
+    const octx = originalCanvas.getContext('2d', { willReadFrequently: true });
+
+    const state = {
+      mode: 'draw',
+      loaded: false,
+      isPointerDown: false,
+      drawing: false,
+      strokeStarted: false,
+      startX: 0,
+      startY: 0,
+      lastX: 0,
+      lastY: 0,
+      history: [],
+      redo: [],
+      crop: { x: 0, y: 0, w: 0, h: 0 },
+      cropDrag: null,
+      cropStart: null,
+      fitCached: null,
+      resizeSource: 'w',
+      aspectRatio: 1,
+      pickingColor: false,
+      pickPoint: { x: 0, y: 0 },
+      repairOverlay: false,
+      repairOpacity: 0.35,
+      brushOpacity: 1,
+      repairInvert: false,
+      bucketEnabled: false,
+      bucketTolerance: 25,
+      bucketReplaceBy: 'color',
+      bucketStrength: 1
+    };
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function syncPickedHex() {
+      const hex = targetColor.value.toLowerCase();
+      pickedHex.textContent = hex;
+      pickerFloatingHex.textContent = hex;
+    }
+
+    function updateReplaceAlphaLabel() {
+      replaceAlphaLabel.textContent = `${replaceAlpha.value}% = fully opaque, 0% = fully transparent`;
+    }
+
+    function updateEdgeFeatherLabel() {
+      const v = Number(edgeFeather.value) || 0;
+      edgeFeatherLabel.textContent = v <= 0 ? '0px = sharp edge' : `${v}px feather smoothing`;
+    }
+
+    function updateRepairOpacityLabel() {
+      repairOpacityLabel.textContent = `${repairOpacity.value}% overlay`;
+      state.repairOpacity = (Number(repairOpacity.value) || 0) / 100;
+    }
+
+
+    function updateBrushOpacityLabel() {
+      brushOpacityLabel.textContent = `${brushOpacity.value}% opacity for Draw / Erase / Repair`;
+      state.brushOpacity = (Number(brushOpacity.value) || 0) / 100;
+    }
+
+    function updateBucketToleranceLabel() {
+      bucketToleranceLabel.textContent = `${bucketTolerance.value} / detection range`;
+      state.bucketTolerance = Number(bucketTolerance.value) || 0;
+    }
+
+    function updateBucketStrengthLabel() {
+      bucketStrengthLabel.textContent = `${bucketStrength.value}% = full area application`;
+      state.bucketStrength = (Number(bucketStrength.value) || 0) / 100;
+    }
+
+    function updateBucketReplaceByUI() {
+      state.bucketReplaceBy = bucketReplaceBy.value;
+      const colorMode = bucketReplaceBy.value === 'color';
+      bucketIgnoreOpacityRow.classList.toggle('hidden', !colorMode);
+      bucketIgnoreColorRow.classList.toggle('hidden', colorMode);
+    }
+
+    function updateBucketEnabledUI() {
+      state.bucketEnabled = bucketToggle.checked;
+      bucketPanel.classList.toggle('on', bucketToggle.checked);
+    }
+
+    function getPixelAt(data, idx) {
+      return { r: data[idx], g: data[idx + 1], b: data[idx + 2], a: data[idx + 3] };
+    }
+
+    function pixelMatchBucket(px, target, opts) {
+      const colorTol = Math.max(0, Number(opts.tolerance) || 0);
+      const alphaTol = Math.max(0, Number.isFinite(opts.alphaTolerance) ? Number(opts.alphaTolerance) : Math.max(1, Math.round(colorTol * 0.6)));
+      const colorMatch = colorDistance(px, target) <= colorTol;
+      const alphaMatch = Math.abs(px.a - target.a) <= alphaTol;
+      // Bucket region detection should stay seed-connected and avoid whole-canvas matches.
+      // The selector only changes how the fill is applied, not whether a pixel belongs to the region.
+      return colorMatch && alphaMatch;
+    }
+
+    function floodFillRegion(startX, startY, opts) {
+      const w = workCanvas.width;
+      const h = workCanvas.height;
+      if (!w || !h) return false;
+
+      const img = wctx.getImageData(0, 0, w, h);
+      const data = img.data;
+      const orig = (originalCanvas.width === w && originalCanvas.height === h)
+        ? octx.getImageData(0, 0, w, h).data
+        : null;
+      const startIdx = (startY * w + startX) * 4;
+      const target = getPixelAt(data, startIdx);
+      const visited = new Uint8Array(w * h);
+      const stack = [[startX, startY]];
+      const strength = clamp(opts.strength ?? 1, 0, 1);
+      const opacity = clamp(opts.opacity ?? 1, 0, 1);
+      const maxFill = opts.mode === 'repair' ? strength : strength * opacity;
+      let changed = false;
+
+      while (stack.length) {
+        const pair = stack.pop();
+        const x = pair[0];
+        const y = pair[1];
+        if (x < 0 || y < 0 || x >= w || y >= h) continue;
+        const pos = y * w + x;
+        if (visited[pos]) continue;
+        visited[pos] = 1;
+
+        const idx = pos * 4;
+        const px = getPixelAt(data, idx);
+        if (!pixelMatchBucket(px, target, opts)) continue;
+
+        changed = true;
+
+        if (opts.mode === 'draw') {
+          const fill = parseHexColor(opts.color);
+          data[idx] = fill.r;
+          data[idx + 1] = fill.g;
+          data[idx + 2] = fill.b;
+          data[idx + 3] = Math.round(255 * maxFill);
+        } else if (opts.mode === 'erase') {
+          data[idx + 3] = Math.max(0, Math.round(data[idx + 3] * (1 - strength)));
+        } else if (opts.mode === 'repair' && orig) {
+          const mix = maxFill;
+          data[idx] = Math.round(data[idx] * (1 - mix) + orig[idx] * mix);
+          data[idx + 1] = Math.round(data[idx + 1] * (1 - mix) + orig[idx + 1] * mix);
+          data[idx + 2] = Math.round(data[idx + 2] * (1 - mix) + orig[idx + 2] * mix);
+          data[idx + 3] = Math.round(data[idx + 3] * (1 - mix) + orig[idx + 3] * mix);
+        }
+
+        if (x > 0) stack.push([x - 1, y]);
+        if (x + 1 < w) stack.push([x + 1, y]);
+        if (y > 0) stack.push([x, y - 1]);
+        if (y + 1 < h) stack.push([x, y + 1]);
+      }
+
+      if (changed) wctx.putImageData(img, 0, 0);
+      return changed;
+    }
+
+    function replaceRegionFromSeed(startX, startY, opts) {
+      const w = workCanvas.width;
+      const h = workCanvas.height;
+      if (!w || !h) return false;
+      const sx = Math.max(0, Math.min(w - 1, Math.round(startX)));
+      const sy = Math.max(0, Math.min(h - 1, Math.round(startY)));
+      return floodFillRegion(sx, sy, opts);
+    }
+
+    function sampleColorAtImagePoint(x, y) {
+      if (!workCanvas.width || !workCanvas.height) return '#ffffff';
+      const ix = Math.max(0, Math.min(workCanvas.width - 1, Math.round(x)));
+      const iy = Math.max(0, Math.min(workCanvas.height - 1, Math.round(y)));
+      const px = wctx.getImageData(ix, iy, 1, 1).data;
+      return `#${[px[0], px[1], px[2]].map(v => v.toString(16).padStart(2, '0')).join('')}`;
+    }
+
+    function setTargetColor(hex) {
+      targetColor.value = hex;
+      syncPickedHex();
+      renderPickZoom();
+    }
+
+    function setPickingColor(on) {
+      state.pickingColor = on;
+      pickTargetBtn.textContent = on ? 'Click image to pick color…' : 'Pick target color from image';
+      pickTargetBtn.classList.toggle('active', on);
+      pickerFloating.classList.toggle('on', on);
+      viewCanvas.style.cursor = on ? 'crosshair' : (state.mode === 'crop' ? 'move' : (state.mode === 'select' ? 'default' : 'crosshair'));
+      setStatus(on ? 'Hover the image to zoom, then click to sample. The picker stays open until you turn it off.' : 'Target color picker closed.');
+      renderPickZoom();
+    }
+
+    function positionPickerPanel(clientX, clientY) {
+      const panelW = 200;
+      const panelH = 230;
+      const left = clamp(clientX, panelW / 2 + 12, window.innerWidth - panelW / 2 - 12);
+      const top = clamp(clientY - panelH - 18, 12, window.innerHeight - panelH - 12);
+      pickerFloating.style.left = `${left}px`;
+      pickerFloating.style.top = `${top}px`;
+    }
+
+    function renderPickZoom() {
+      const cw = pickZoomCanvas.width;
+      const ch = pickZoomCanvas.height;
+      pickZoomCtx.clearRect(0, 0, cw, ch);
+      pickZoomCtx.fillStyle = getComputedStyle(document.body).getPropertyValue('--panel');
+      pickZoomCtx.fillRect(0, 0, cw, ch);
+
+      if (!state.loaded || !workCanvas.width || !workCanvas.height) {
+        pickZoomCtx.fillStyle = getComputedStyle(document.body).getPropertyValue('--muted');
+        pickZoomCtx.font = '14px system-ui, sans-serif';
+        pickZoomCtx.textAlign = 'center';
+        pickZoomCtx.fillText('Upload image first', cw / 2, ch / 2);
+        return;
+      }
+
+      const sampleX = state.pickPoint.x || workCanvas.width / 2;
+      const sampleY = state.pickPoint.y || workCanvas.height / 2;
+      const zoom = 12;
+      const viewSize = 13;
+      const srcSize = viewSize / zoom;
+      const sx = Math.max(0, Math.min(workCanvas.width - srcSize, sampleX - srcSize / 2));
+      const sy = Math.max(0, Math.min(workCanvas.height - srcSize, sampleY - srcSize / 2));
+      pickZoomCtx.imageSmoothingEnabled = false;
+      pickZoomCtx.drawImage(workCanvas, sx, sy, srcSize, srcSize, 0, 0, cw, ch);
+
+      const crossX = cw / 2;
+      const crossY = ch / 2;
+      pickZoomCtx.strokeStyle = 'rgba(255,255,255,.95)';
+      pickZoomCtx.lineWidth = 1.5;
+      pickZoomCtx.beginPath();
+      pickZoomCtx.moveTo(crossX, 0); pickZoomCtx.lineTo(crossX, ch);
+      pickZoomCtx.moveTo(0, crossY); pickZoomCtx.lineTo(crossX, crossY);
+      pickZoomCtx.moveTo(crossX, crossY); pickZoomCtx.lineTo(cw, crossY);
+      pickZoomCtx.stroke();
+
+      pickZoomCtx.strokeStyle = 'rgba(0,0,0,.6)';
+      pickZoomCtx.strokeRect(0.5, 0.5, cw - 1, ch - 1);
+    }
+
+function renderRepairOverlay() {
+  if (!state.repairOverlay || !state.loaded || !originalCanvas.width || !originalCanvas.height) return;
+  vctx.save();
+  vctx.globalAlpha = state.repairOpacity;
+  vctx.filter = state.repairInvert ? 'invert(1)' : 'none';
+  vctx.drawImage(originalCanvas, state.fitCached.x, state.fitCached.y, state.fitCached.w, state.fitCached.h);
+  vctx.restore();
+}
+
+function updatePickerPointFromEvent(e) {
+  const p = getCanvasPoint(e);
+  const imgPoint = viewToImage(p.x, p.y);
+  state.pickPoint.x = clamp(imgPoint.x, 0, Math.max(0, workCanvas.width - 1));
+  state.pickPoint.y = clamp(imgPoint.y, 0, Math.max(0, workCanvas.height - 1));
+  positionPickerPanel(e.clientX, e.clientY);
+  renderPickZoom();
+}
+
+function samplePickerOnEvent(e) {
+  const p = getCanvasPoint(e);
+  const imgPoint = viewToImage(p.x, p.y);
+  const hex = sampleColorAtImagePoint(imgPoint.x, imgPoint.y);
+  setTargetColor(hex);
+  setStatus(`Picked ${hex.toUpperCase()} from the image.`);
+}
+
+
+    function updateResizeModeUI() {
+      const mode = resizeMode.value;
+      const dims = mode === 'dimensions';
+      resizeDims.classList.toggle('resizeHidden', !dims);
+      resizePercentBox.classList.toggle('resizeHidden', dims);
+      resizeBtn.textContent = dims ? 'Resize by Width / Height' : 'Resize by Percentage';
+    }
+
+    function updateAspectRatio() {
+      if (workCanvas.width && workCanvas.height) {
+        state.aspectRatio = workCanvas.width / workCanvas.height;
+      }
+    }
+
+    function resizeInputsToImage() {
+      if (!workCanvas.width || !workCanvas.height) return;
+      resizeW.value = Math.max(1, Math.round(workCanvas.width));
+      resizeH.value = Math.max(1, Math.round(workCanvas.height));
+    }
+
+    function clampCropBox() {
+      if (!workCanvas.width || !workCanvas.height) return;
+      const minSize = 10;
+      state.crop.w = Math.max(minSize, Math.min(state.crop.w, workCanvas.width));
+      state.crop.h = Math.max(minSize, Math.min(state.crop.h, workCanvas.height));
+      state.crop.x = Math.max(0, Math.min(state.crop.x, workCanvas.width - state.crop.w));
+      state.crop.y = Math.max(0, Math.min(state.crop.y, workCanvas.height - state.crop.h));
+      state.crop.w = Math.max(minSize, Math.min(state.crop.w, workCanvas.width - state.crop.x));
+      state.crop.h = Math.max(minSize, Math.min(state.crop.h, workCanvas.height - state.crop.y));
+    }
+
+    function resetCropBox() {
+      if (!workCanvas.width || !workCanvas.height) return;
+      const padX = workCanvas.width * 0.08;
+      const padY = workCanvas.height * 0.08;
+      state.crop = {
+        x: padX,
+        y: padY,
+        w: Math.max(10, workCanvas.width - padX * 2),
+        h: Math.max(10, workCanvas.height - padY * 2)
+      };
+      clampCropBox();
+      render();
+    }
+
+    function ensureCropBox() {
+      if (!workCanvas.width || !workCanvas.height) return;
+      if (!state.crop || !state.crop.w || !state.crop.h) {
+        resetCropBox();
+        return;
+      }
+      clampCropBox();
+    }
+
+    function fitRect(viewW, viewH, imageW, imageH) {
+      if (!imageW || !imageH) return { scale: 1, x: 0, y: 0, w: 0, h: 0 };
+      const scale = Math.min(viewW / imageW, viewH / imageH);
+      const w = imageW * scale;
+      const h = imageH * scale;
+      const x = (viewW - w) / 2;
+      const y = (viewH - h) / 2;
+      return { scale, x, y, w, h };
+    }
+
+    function resizeCanvasForDisplay() {
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const rect = viewCanvas.getBoundingClientRect();
+      const w = Math.max(1, Math.round(rect.width * dpr));
+      const h = Math.max(1, Math.round(rect.height * dpr));
+      if (viewCanvas.width !== w || viewCanvas.height !== h) {
+        viewCanvas.width = w;
+        viewCanvas.height = h;
+      }
+    }
+
+    function syncResizeFromSource(source) {
+      if (!state.loaded || !keepRatio.checked || resizeMode.value !== 'dimensions') return;
+      const w = Number(resizeW.value);
+      const h = Number(resizeH.value);
+      if (source === 'w' && w > 0 && state.aspectRatio > 0) {
+        resizeH.value = Math.max(1, Math.round(w / state.aspectRatio));
+      } else if (source === 'h' && h > 0 && state.aspectRatio > 0) {
+        resizeW.value = Math.max(1, Math.round(h * state.aspectRatio));
+      }
+    }
+
+    function commitResizeFromInputs() {
+      if (!state.loaded) return;
+      if (resizeMode.value === 'percent') {
+        applyResizePercent(resizePercent.value);
+        return;
+      }
+      const w = Number(resizeW.value);
+      const h = Number(resizeH.value);
+      if (!w && !h) return;
+      if (keepRatio.checked) {
+        syncResizeFromSource(state.resizeSource || (w ? 'w' : 'h'));
+      }
+      const finalW = Number(resizeW.value) || workCanvas.width;
+      const finalH = Number(resizeH.value) || workCanvas.height;
+      pushHistory();
+      applyResize(finalW, finalH);
+    }
+
+    function snapshotCanvases() {
+      return {
+        work: workCanvas.toDataURL('image/png'),
+        original: originalCanvas.toDataURL('image/png')
+      };
+    }
+
+    function pushHistory() {
+      if (!workCanvas.width || !workCanvas.height) return;
+      state.history.push(snapshotCanvases());
+      if (state.history.length > 30) state.history.shift();
+      state.redo.length = 0;
+      updateUndoRedo();
+    }
+
+    function updateUndoRedo() {
+      undoBtn.disabled = state.history.length <= 1;
+      redoBtn.disabled = state.redo.length === 0;
+      undoBtn.style.opacity = undoBtn.disabled ? .5 : 1;
+      redoBtn.style.opacity = redoBtn.disabled ? .5 : 1;
+    }
+
+
+function loadFromDataURL(url, keepCrop = true) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      workCanvas.width = img.naturalWidth || img.width;
+      workCanvas.height = img.naturalHeight || img.height;
+      originalCanvas.width = workCanvas.width;
+      originalCanvas.height = workCanvas.height;
+      wctx.clearRect(0, 0, workCanvas.width, workCanvas.height);
+      octx.clearRect(0, 0, originalCanvas.width, originalCanvas.height);
+      wctx.drawImage(img, 0, 0);
+      octx.drawImage(img, 0, 0);
+      state.loaded = true;
+      updateAspectRatio();
+      if (!keepCrop) resetCropBox();
+      else ensureCropBox();
+      resizeInputsToImage();
+      resizeMode.value = 'dimensions';
+      resizePercent.value = '100';
+      state.resizeSource = 'w';
+      updateResizeModeUI();
+      syncPickedHex();
+      updateReplaceAlphaLabel();
+      updateEdgeFeatherLabel();
+      updateBrushOpacityLabel();
+      updateRepairOpacityLabel();
+      updateBucketToleranceLabel();
+      updateBucketStrengthLabel();
+      updateBucketReplaceByUI();
+      updateBucketEnabledUI();
+      renderPickZoom();
+      pushHistory();
+      setStatus(`Loaded image: ${workCanvas.width} × ${workCanvas.height}`);
+      render();
+      resolve();
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+    function imageToView(x, y) {
+      const fit = state.fitCached || fitRect(viewCanvas.width, viewCanvas.height, workCanvas.width, workCanvas.height);
+      return {
+        x: fit.x + x * fit.scale,
+        y: fit.y + y * fit.scale,
+        scale: fit.scale
+      };
+    }
+
+    function viewToImage(px, py) {
+      const fit = state.fitCached || fitRect(viewCanvas.width, viewCanvas.height, workCanvas.width, workCanvas.height);
+      const x = (px - fit.x) / fit.scale;
+      const y = (py - fit.y) / fit.scale;
+      return { x, y, fit };
+    }
+
+    function render() {
+      resizeCanvasForDisplay();
+      const vw = viewCanvas.width;
+      const vh = viewCanvas.height;
+      vctx.clearRect(0, 0, vw, vh);
+      state.fitCached = fitRect(vw, vh, workCanvas.width, workCanvas.height);
+
+      if (!state.loaded || !workCanvas.width || !workCanvas.height) {
+        vctx.save();
+        vctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--muted');
+        vctx.font = `${Math.round(vw / 36)}px system-ui, sans-serif`;
+        vctx.textAlign = 'center';
+        vctx.fillText('Upload an image to begin', vw / 2, vh / 2);
+        vctx.restore();
+        renderPickZoom();
+        return;
+      }
+
+      vctx.imageSmoothingEnabled = true;
+      vctx.drawImage(workCanvas, state.fitCached.x, state.fitCached.y, state.fitCached.w, state.fitCached.h);
+      renderRepairOverlay();
+
+      if (state.mode === 'crop') {
+        drawCropOverlay();
+      }
+      if (state.pickingColor) renderPickZoom();
+    }
+
+    function drawCropOverlay() {
+      const crop = state.crop;
+      const a = imageToView(crop.x, crop.y);
+      const b = imageToView(crop.x + crop.w, crop.y + crop.h);
+      const x = a.x;
+      const y = a.y;
+      const w = b.x - a.x;
+      const h = b.y - a.y;
+
+      vctx.save();
+
+      vctx.fillStyle = 'rgba(0,0,0,0.25)';
+      vctx.fillRect(0, 0, viewCanvas.width, viewCanvas.height);
+
+      vctx.clearRect(x, y, w, h);
+      vctx.drawImage(workCanvas, state.fitCached.x, state.fitCached.y, state.fitCached.w, state.fitCached.h);
+
+      vctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#5b7cfa';
+      vctx.lineWidth = Math.max(2, viewCanvas.width / 500);
+      vctx.setLineDash([10, 8]);
+      vctx.strokeRect(x, y, w, h);
+      vctx.setLineDash([]);
+
+      const handleSize = Math.max(12, Math.min(viewCanvas.width, viewCanvas.height) * 0.012);
+      const handles = getCropHandles();
+      vctx.fillStyle = '#ffffff';
+      vctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#5b7cfa';
+      vctx.lineWidth = 2;
+
+      for (const hnd of handles) {
+        vctx.beginPath();
+        vctx.roundRect(hnd.x - handleSize/2, hnd.y - handleSize/2, handleSize, handleSize, 4);
+        vctx.fill();
+        vctx.stroke();
+      }
+
+      if (cropGrid.checked) {
+        vctx.strokeStyle = 'rgba(255,255,255,.75)';
+        vctx.lineWidth = Math.max(1, viewCanvas.width / 900);
+        const gx1 = x + w / 3;
+        const gx2 = x + (w * 2) / 3;
+        const gy1 = y + h / 3;
+        const gy2 = y + (h * 2) / 3;
+        vctx.beginPath();
+        vctx.moveTo(gx1, y); vctx.lineTo(gx1, y + h);
+        vctx.moveTo(gx2, y); vctx.lineTo(gx2, y + h);
+        vctx.moveTo(x, gy1); vctx.lineTo(x + w, gy1);
+        vctx.moveTo(x, gy2); vctx.lineTo(x + w, gy2);
+        vctx.stroke();
+      }
+
+      vctx.fillStyle = 'rgba(255,255,255,.92)';
+      vctx.font = `${Math.round(viewCanvas.width / 90)}px system-ui, sans-serif`;
+      vctx.fillText('Crop box', x + 10, y - 10);
+
+      vctx.restore();
+    }
+
+    function getCropHandles() {
+      const c = state.crop;
+      return [
+        imageToView(c.x, c.y),
+        imageToView(c.x + c.w, c.y),
+        imageToView(c.x + c.w, c.y + c.h),
+        imageToView(c.x, c.y + c.h)
+      ].map(p => ({ x: p.x, y: p.y }));
+    }
+
+    function cropHandleHit(px, py) {
+      const handles = getCropHandles();
+      const scale = Math.max(10, Math.min(viewCanvas.width, viewCanvas.height) * 0.018);
+      for (let i = 0; i < handles.length; i++) {
+        const h = handles[i];
+        if (Math.abs(px - h.x) <= scale && Math.abs(py - h.y) <= scale) return i;
+      }
+      return -1;
+    }
+
+
+    function pointInCrop(px, py) {
+      const a = imageToView(state.crop.x, state.crop.y);
+      const b = imageToView(state.crop.x + state.crop.w, state.crop.y + state.crop.h);
+      return px >= a.x && px <= b.x && py >= a.y && py <= b.y;
+    }
+
+    function copyCropTo(canvas, ctx, x, y, w, h) {
+      const temp = document.createElement('canvas');
+      temp.width = w;
+      temp.height = h;
+      const tctx = temp.getContext('2d');
+      tctx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
+      canvas.width = w;
+      canvas.height = h;
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(temp, 0, 0);
+    }
+
+    function applyCropBox() {
+      if (!state.loaded) return;
+      const x = Math.max(0, Math.floor(state.crop.x));
+      const y = Math.max(0, Math.floor(state.crop.y));
+      const w = Math.max(1, Math.floor(state.crop.w));
+      const h = Math.max(1, Math.floor(state.crop.h));
+
+      copyCropTo(workCanvas, wctx, x, y, w, h);
+      copyCropTo(originalCanvas, octx, x, y, w, h);
+
+      state.crop = { x: 0, y: 0, w, h };
+      resizeInputsToImage();
+      updateAspectRatio();
+      pushHistory();
+      setStatus(`Cropped to ${w} × ${h}`);
+      render();
+    }
+
+    function resizeCanvasTo(canvas, ctx, newW, newH) {
+      const temp = document.createElement('canvas');
+      temp.width = newW;
+      temp.height = newH;
+      const tctx = temp.getContext('2d');
+      tctx.imageSmoothingEnabled = true;
+      tctx.drawImage(canvas, 0, 0, newW, newH);
+      canvas.width = newW;
+      canvas.height = newH;
+      ctx.clearRect(0, 0, newW, newH);
+      ctx.drawImage(temp, 0, 0);
+    }
+
+    function applyResize(newW, newH) {
+      if (!state.loaded) return;
+      newW = Math.max(1, Math.floor(newW));
+      newH = Math.max(1, Math.floor(newH));
+
+      if (noEnlarge.checked) {
+        newW = Math.min(newW, workCanvas.width);
+        newH = Math.min(newH, workCanvas.height);
+      }
+
+      resizeCanvasTo(workCanvas, wctx, newW, newH);
+      resizeCanvasTo(originalCanvas, octx, newW, newH);
+
+      resizeInputsToImage();
+      updateAspectRatio();
+      resetCropBox();
+      pushHistory();
+      setStatus(`Resized to ${newW} × ${newH}`);
+      render();
+    }
+
+    function applyResizePercent(percent) {
+      if (!state.loaded) return;
+      percent = Math.max(1, Number(percent) || 100);
+      const newW = Math.max(1, Math.round(workCanvas.width * percent / 100));
+      const newH = Math.max(1, Math.round(workCanvas.height * percent / 100));
+      applyResize(newW, newH);
+    }
+
+    function parseHexColor(hex) {
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return m ? {
+        r: parseInt(m[1], 16),
+        g: parseInt(m[2], 16),
+        b: parseInt(m[3], 16)
+      } : { r: 0, g: 0, b: 0 };
+    }
+
+    function colorDistance(a, b) {
+      return Math.sqrt(
+        (a.r - b.r) * (a.r - b.r) +
+        (a.g - b.g) * (a.g - b.g) +
+        (a.b - b.b) * (a.b - b.b)
+      );
+    }
+
+    function makeFeatherMask(imgData, matchMask, radius) {
+      const { width, height } = imgData;
+      const out = new Uint8ClampedArray(width * height);
+      if (!radius) {
+        for (let i = 0; i < out.length; i++) out[i] = matchMask[i] ? 255 : 0;
+        return out;
+      }
+
+      const maskCanvas = document.createElement('canvas');
+      maskCanvas.width = width;
+      maskCanvas.height = height;
+      const maskCtx = maskCanvas.getContext('2d');
+      const maskImg = maskCtx.createImageData(width, height);
+      for (let i = 0; i < matchMask.length; i++) {
+        const p = i * 4;
+        const v = matchMask[i] ? 255 : 0;
+        maskImg.data[p] = 255;
+        maskImg.data[p + 1] = 255;
+        maskImg.data[p + 2] = 255;
+        maskImg.data[p + 3] = v;
+      }
+      maskCtx.putImageData(maskImg, 0, 0);
+
+      const blurCanvas = document.createElement('canvas');
+      blurCanvas.width = width;
+      blurCanvas.height = height;
+      const blurCtx = blurCanvas.getContext('2d');
+      blurCtx.clearRect(0, 0, width, height);
+      blurCtx.filter = `blur(${radius}px)`;
+      blurCtx.drawImage(maskCanvas, 0, 0);
+
+      const blurred = blurCtx.getImageData(0, 0, width, height).data;
+      for (let i = 0; i < out.length; i++) out[i] = blurred[i * 4 + 3];
+      return out;
+    }
+
+    function replaceTargetColor({ opacity = 1 } = {}) {
+      if (!state.loaded) return;
+      const t = parseHexColor(targetColor.value);
+      const r = parseHexColor(replaceColor.value);
+      const tol = Number(tolerance.value) || 0;
+      const alpha = Math.max(0, Math.min(255, Math.round((Number(opacity) || 0) * 255)));
+      const feather = Math.max(0, Math.round(Number(edgeFeather.value) || 0));
+
+      if (replaceAll.checked) {
+        const img = wctx.getImageData(0, 0, workCanvas.width, workCanvas.height);
+        const data = img.data;
+        const matches = new Uint8Array(workCanvas.width * workCanvas.height);
+
+        for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+          const px = { r: data[i], g: data[i + 1], b: data[i + 2] };
+          const matched = colorDistance(px, t) <= tol;
+          matches[p] = matched ? 1 : 0;
+          if (matched) {
+            data[i] = r.r;
+            data[i + 1] = r.g;
+            data[i + 2] = r.b;
+            data[i + 3] = alpha;
+          }
+        }
+
+        if (feather > 0) {
+          const maskAlpha = makeFeatherMask(img, matches, feather);
+          for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+            if (matches[p]) data[i + 3] = Math.round((data[i + 3] * maskAlpha[p]) / 255);
+          }
+        }
+
+        wctx.putImageData(img, 0, 0);
+      } else {
+        const sx = Math.round(state.pickPoint.x || 0);
+        const sy = Math.round(state.pickPoint.y || 0);
+        const img = wctx.getImageData(0, 0, workCanvas.width, workCanvas.height);
+        const data = img.data;
+        const matches = new Uint8Array(workCanvas.width * workCanvas.height);
+        const startIdx = (sy * workCanvas.width + sx) * 4;
+        const target = getPixelAt(data, startIdx);
+        const stack = [[sx, sy]];
+        const visited = new Uint8Array(workCanvas.width * workCanvas.height);
+
+        while (stack.length) {
+          const [x, y] = stack.pop();
+          if (x < 0 || y < 0 || x >= workCanvas.width || y >= workCanvas.height) continue;
+          const pos = y * workCanvas.width + x;
+          if (visited[pos]) continue;
+          visited[pos] = 1;
+          const idx = pos * 4;
+          const px = getPixelAt(data, idx);
+          if (colorDistance(px, target) > tol || Math.abs(px.a - target.a) > tol) continue;
+          matches[pos] = 1;
+          data[idx] = r.r;
+          data[idx + 1] = r.g;
+          data[idx + 2] = r.b;
+          data[idx + 3] = alpha;
+          if (x > 0) stack.push([x - 1, y]);
+          if (x + 1 < workCanvas.width) stack.push([x + 1, y]);
+          if (y > 0) stack.push([x, y - 1]);
+          if (y + 1 < workCanvas.height) stack.push([x, y + 1]);
+        }
+
+        if (feather > 0) {
+          const maskAlpha = makeFeatherMask(img, matches, feather);
+          for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+            if (matches[p]) data[i + 3] = Math.round((data[i + 3] * maskAlpha[p]) / 255);
+          }
+        }
+
+        wctx.putImageData(img, 0, 0);
+      }
+
+      pushHistory();
+      setStatus(`Replaced matching color with ${Math.round((alpha / 255) * 100)}% opacity.`);
+      render();
+    }
+
+    function applyChromaKey() {
+      if (!state.loaded) return;
+      const tol = Number(tolerance.value) || 0;
+      const feather = Math.max(0, Math.round(Number(edgeFeather.value) || 0));
+
+      if (replaceAll.checked) {
+        const img = wctx.getImageData(0, 0, workCanvas.width, workCanvas.height);
+        const data = img.data;
+        const t = parseHexColor(targetColor.value);
+        const matches = new Uint8Array(workCanvas.width * workCanvas.height);
+
+        for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+          const px = { r: data[i], g: data[i + 1], b: data[i + 2] };
+          const matched = colorDistance(px, t) <= tol;
+          matches[p] = matched ? 1 : 0;
+          if (matched) data[i + 3] = 0;
+        }
+
+        if (feather > 0) {
+          const maskAlpha = makeFeatherMask(img, matches, feather);
+          for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+            if (matches[p]) data[i + 3] = Math.round((data[i + 3] * maskAlpha[p]) / 255);
+          }
+        }
+
+        wctx.putImageData(img, 0, 0);
+      } else {
+        const sx = Math.round(state.pickPoint.x || 0);
+        const sy = Math.round(state.pickPoint.y || 0);
+        const img = wctx.getImageData(0, 0, workCanvas.width, workCanvas.height);
+        const data = img.data;
+        const startIdx = (sy * workCanvas.width + sx) * 4;
+        const target = getPixelAt(data, startIdx);
+        const matches = new Uint8Array(workCanvas.width * workCanvas.height);
+        const stack = [[sx, sy]];
+        const visited = new Uint8Array(workCanvas.width * workCanvas.height);
+
+        while (stack.length) {
+          const [x, y] = stack.pop();
+          if (x < 0 || y < 0 || x >= workCanvas.width || y >= workCanvas.height) continue;
+          const pos = y * workCanvas.width + x;
+          if (visited[pos]) continue;
+          visited[pos] = 1;
+          const idx = pos * 4;
+          const px = getPixelAt(data, idx);
+          if (colorDistance(px, target) > tol || Math.abs(px.a - target.a) > tol) continue;
+          matches[pos] = 1;
+          data[idx + 3] = 0;
+          if (x > 0) stack.push([x - 1, y]);
+          if (x + 1 < workCanvas.width) stack.push([x + 1, y]);
+          if (y > 0) stack.push([x, y - 1]);
+          if (y + 1 < workCanvas.height) stack.push([x, y + 1]);
+        }
+
+        if (feather > 0) {
+          const maskAlpha = makeFeatherMask(img, matches, feather);
+          for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+            if (matches[p]) data[i + 3] = Math.round((data[i + 3] * maskAlpha[p]) / 255);
+          }
+        }
+
+        wctx.putImageData(img, 0, 0);
+      }
+
+      pushHistory();
+      setStatus('Applied chroma key transparency.');
+      render();
+    }
+
+    function clearImage() {
+      if (!state.loaded) return;
+      const w = workCanvas.width;
+      const h = workCanvas.height;
+      wctx.clearRect(0, 0, w, h);
+      octx.clearRect(0, 0, w, h);
+      wctx.fillStyle = '#ffffff';
+      octx.fillStyle = '#ffffff';
+      wctx.fillRect(0, 0, w, h);
+      octx.fillRect(0, 0, w, h);
+      pushHistory();
+      setStatus('Canvas cleared.');
+      render();
+    }
+
+    function downloadPNG() {
+      if (!state.loaded) return;
+      const a = document.createElement('a');
+      a.download = 'edited-image.png';
+      a.href = workCanvas.toDataURL('image/png');
+      a.click();
+    }
+
+    function restoreCanvasFromDataURL(canvas, ctx, dataURL) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          resolve();
+        };
+        img.src = dataURL;
+      });
+    }
+
+    async function restoreSnapshot(snapshot) {
+      await Promise.all([
+        restoreCanvasFromDataURL(workCanvas, wctx, snapshot.work),
+        restoreCanvasFromDataURL(originalCanvas, octx, snapshot.original)
+      ]);
+      updateAspectRatio();
+      resizeInputsToImage();
+      ensureCropBox();
+      render();
+    }
+
+    function undo() {
+      if (state.history.length <= 1) return;
+      const current = state.history.pop();
+      state.redo.push(current);
+      const prev = state.history[state.history.length - 1];
+      restoreSnapshot(prev);
+      updateUndoRedo();
+      setStatus('Undid last action.');
+    }
+
+    function redo() {
+      if (!state.redo.length) return;
+      const next = state.redo.pop();
+      state.history.push(next);
+      restoreSnapshot(next);
+      updateUndoRedo();
+      setStatus('Redid action.');
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      drawBtn.classList.toggle('active', mode === 'draw');
+      eraseBtn.classList.toggle('active', mode === 'erase');
+      selectBtn.classList.toggle('active', mode === 'select');
+      repairBtn.classList.toggle('active', mode === 'repair');
+      cropBtn.classList.toggle('active', mode === 'crop');
+      cropTag.style.display = mode === 'crop' ? 'inline-flex' : 'none';
+      viewCanvas.style.cursor = state.pickingColor ? 'crosshair' : (mode === 'crop' ? 'move' : (mode === 'select' ? 'default' : (mode === 'repair' ? 'copy' : 'crosshair')));
+      if (mode === 'crop') ensureCropBox();
+      render();
+    }
+
+    function getCanvasPoint(evt) {
+      const rect = viewCanvas.getBoundingClientRect();
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      return {
+        x: (evt.clientX - rect.left) * dpr,
+        y: (evt.clientY - rect.top) * dpr
+      };
+    }
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function startStroke(x, y) {
+      pushHistory();
+      state.strokeStarted = true;
+      state.drawing = true;
+      if (state.mode === 'repair') return;
+      wctx.save();
+      wctx.lineCap = 'round';
+      wctx.lineJoin = 'round';
+      wctx.globalCompositeOperation = state.mode === 'erase' ? 'destination-out' : 'source-over';
+      wctx.globalAlpha = Math.max(0, Math.min(1, state.brushOpacity));
+      wctx.strokeStyle = state.mode === 'erase' ? 'rgba(0,0,0,1)' : penColor.value;
+      wctx.lineWidth = Number(penSize.value) || 1;
+      wctx.beginPath();
+      wctx.moveTo(x, y);
+    }
+
+    function applyRepairBrush(x, y) {
+      if (!state.loaded || !originalCanvas.width || !originalCanvas.height) return;
+      const size = Math.max(1, Number(penSize.value) || 1);
+      const radius = size / 2;
+      const baseMix = Math.max(0, Math.min(1, state.brushOpacity * state.brushOpacity));
+      if (baseMix <= 0) return;
+
+      const x0 = Math.max(0, Math.floor(x - radius - 1));
+      const y0 = Math.max(0, Math.floor(y - radius - 1));
+      const x1 = Math.min(workCanvas.width, Math.ceil(x + radius + 1));
+      const y1 = Math.min(workCanvas.height, Math.ceil(y + radius + 1));
+      const w = x1 - x0;
+      const h = y1 - y0;
+      if (w <= 0 || h <= 0) return;
+
+      const work = wctx.getImageData(x0, y0, w, h);
+      const orig = octx.getImageData(x0, y0, w, h);
+      const wd = work.data;
+      const od = orig.data;
+
+      for (let j = 0; j < h; j++) {
+        for (let i = 0; i < w; i++) {
+          const dx = (x0 + i + 0.5) - x;
+          const dy = (y0 + j + 0.5) - y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > radius) continue;
+          const t = radius <= 0 ? 1 : Math.max(0, 1 - dist / radius);
+          const smooth = t * t * (3 - 2 * t);
+          const mix = baseMix * smooth;
+          if (mix <= 0) continue;
+          const p = (j * w + i) * 4;
+          wd[p] = wd[p] * (1 - mix) + od[p] * mix;
+          wd[p + 1] = wd[p + 1] * (1 - mix) + od[p + 1] * mix;
+          wd[p + 2] = wd[p + 2] * (1 - mix) + od[p + 2] * mix;
+          wd[p + 3] = wd[p + 3] * (1 - mix) + od[p + 3] * mix;
+        }
+      }
+
+      wctx.putImageData(work, x0, y0);
+      render();
+    }
+
+    function paintMove(x, y) {
+      if (state.mode === 'repair') {
+        applyRepairBrush(x, y);
+        return;
+      }
+      wctx.lineTo(x, y);
+      wctx.stroke();
+      render();
+    }
+
+    function endStroke() {
+      if (!state.drawing) return;
+      if (state.mode !== 'repair') wctx.restore();
+      state.drawing = false;
+      state.strokeStarted = false;
+      setStatus(state.mode === 'repair' ? 'Repaired pixels.' : 'Painted on the image.');
+    }
+
+    viewCanvas.addEventListener('pointerdown', (e) => {
+      if (!state.loaded) return;
+      viewCanvas.setPointerCapture(e.pointerId);
+      state.isPointerDown = true;
+
+      if (state.pickingColor) {
+        updatePickerPointFromEvent(e);
+        samplePickerOnEvent(e);
+        return;
+      }
+
+      const p = getCanvasPoint(e);
+      const imgPoint = viewToImage(p.x, p.y);
+      const ix = clamp(imgPoint.x, 0, workCanvas.width);
+      const iy = clamp(imgPoint.y, 0, workCanvas.height);
+
+      if (state.mode === 'draw' || state.mode === 'erase' || state.mode === 'repair') {
+        if (state.bucketEnabled) {
+          pushHistory();
+          floodFillRegion(Math.round(ix), Math.round(iy), {
+            mode: state.mode,
+            tolerance: Number(bucketTolerance.value) || 0,
+            alphaTolerance: Math.max(2, Math.round((Number(bucketTolerance.value) || 0) * 0.6)),
+            color: penColor.value,
+            opacity: state.brushOpacity,
+            strength: state.bucketStrength,
+            ignoreOpacity: bucketIgnoreOpacity.checked,
+            ignoreColor: bucketIgnoreColor.checked
+          });
+          setStatus(`Bucket fill applied in ${state.mode} mode.`);
+          render();
+          return;
+        }
+        startStroke(ix, iy);
+        paintMove(ix, iy);
+        state.lastX = ix;
+        state.lastY = iy;
+        return;
+      }
+
+      if (state.mode === 'crop') {
+        ensureCropBox();
+        const handle = cropHandleHit(p.x, p.y);
+        if (handle >= 0) {
+          state.cropDrag = { type: 'handle', handle };
+          state.cropStart = { ...state.crop, startX: ix, startY: iy };
+          return;
+        }
+        if (pointInCrop(p.x, p.y)) {
+          state.cropDrag = { type: 'move' };
+          state.cropStart = { ...state.crop, startX: ix, startY: iy };
+          return;
+        }
+        state.cropDrag = { type: 'new' };
+        state.cropStart = { x: ix, y: iy, w: 0, h: 0 };
+        state.crop = { x: ix, y: iy, w: 1, h: 1 };
+        render();
+      }
+    });
+
+    viewCanvas.addEventListener('pointermove', (e) => {
+      if (!state.loaded) return;
+      if (state.pickingColor) {
+        updatePickerPointFromEvent(e);
+        return;
+      }
+      const p = getCanvasPoint(e);
+      const imgPoint = viewToImage(p.x, p.y);
+      const ix = clamp(imgPoint.x, 0, workCanvas.width);
+      const iy = clamp(imgPoint.y, 0, workCanvas.height);
+
+      if ((state.mode === 'draw' || state.mode === 'erase' || state.mode === 'repair') && state.drawing) {
+        paintMove(ix, iy);
+        state.lastX = ix;
+        state.lastY = iy;
+        return;
+      }
+
+      if (state.mode === 'crop' && state.cropDrag) {
+        const c = state.crop;
+        const start = state.cropStart;
+        const minSize = 10;
+
+        if (state.cropDrag.type === 'move') {
+          const dx = ix - start.startX;
+          const dy = iy - start.startY;
+          state.crop.x = clamp(start.x + dx, 0, Math.max(0, workCanvas.width - start.w));
+          state.crop.y = clamp(start.y + dy, 0, Math.max(0, workCanvas.height - start.h));
+          state.crop.w = start.w;
+          state.crop.h = start.h;
+        } else if (state.cropDrag.type === 'new') {
+          const x1 = clamp(start.x, 0, workCanvas.width);
+          const y1 = clamp(start.y, 0, workCanvas.height);
+          const x2 = clamp(ix, 0, workCanvas.width);
+          const y2 = clamp(iy, 0, workCanvas.height);
+          state.crop.x = Math.min(x1, x2);
+          state.crop.y = Math.min(y1, y2);
+          state.crop.w = Math.max(minSize, Math.abs(x2 - x1));
+          state.crop.h = Math.max(minSize, Math.abs(y2 - y1));
+          if (state.crop.x + state.crop.w > workCanvas.width) state.crop.w = workCanvas.width - state.crop.x;
+          if (state.crop.y + state.crop.h > workCanvas.height) state.crop.h = workCanvas.height - state.crop.y;
+        } else if (state.cropDrag.type === 'handle') {
+          const h = state.cropDrag.handle;
+          let x = start.x, y = start.y, w = start.w, hh = start.h;
+
+          if (h === 0) {
+            x = ix; y = iy; w = start.x + start.w - ix; hh = start.y + start.h - iy;
+          } else if (h === 1) {
+            y = iy; w = ix - start.x; hh = start.y + start.h - iy;
+          } else if (h === 2) {
+            w = ix - start.x; hh = iy - start.y;
+          } else if (h === 3) {
+            x = ix; w = start.x + start.w - ix; hh = iy - start.y;
+          }
+
+          if (w < 0) { x += w; w = Math.abs(w); }
+          if (hh < 0) { y += hh; hh = Math.abs(hh); }
+
+          state.crop.x = clamp(x, 0, workCanvas.width - minSize);
+          state.crop.y = clamp(y, 0, workCanvas.height - minSize);
+          state.crop.w = clamp(w, minSize, workCanvas.width - state.crop.x);
+          state.crop.h = clamp(hh, minSize, workCanvas.height - state.crop.y);
+        }
+
+        clampCropBox();
+        render();
+      }
+    });
+
+    viewCanvas.addEventListener('pointerup', () => {
+      if (state.pickingColor) {
+        state.isPointerDown = false;
+        return;
+      }
+      if (state.mode === 'draw' || state.mode === 'erase') {
+        endStroke();
+      }
+      if (state.mode === 'crop') {
+        state.cropDrag = null;
+        state.cropStart = null;
+      }
+      state.isPointerDown = false;
+    });
+
+    viewCanvas.addEventListener('pointercancel', () => {
+      endStroke();
+      state.cropDrag = null;
+      state.cropStart = null;
+      state.isPointerDown = false;
+    });
+
+    viewCanvas.addEventListener('mouseleave', () => {
+      if ((state.mode === 'draw' || state.mode === 'erase') && state.drawing) endStroke();
+    });
+
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      try {
+        await loadFromDataURL(url, false);
+      } catch (err) {
+        console.error(err);
+        setStatus('Could not load that file.');
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    });
+
+    themeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      render();
+    });
+
+    drawBtn.addEventListener('click', () => setMode('draw'));
+    eraseBtn.addEventListener('click', () => setMode('erase'));
+    selectBtn.addEventListener('click', () => setMode('select'));
+    repairBtn.addEventListener('click', () => setMode('repair'));
+    cropBtn.addEventListener('click', () => setMode('crop'));
+    undoBtn.addEventListener('click', undo);
+    redoBtn.addEventListener('click', redo);
+
+    bucketToggle.addEventListener('change', updateBucketEnabledUI);
+    bucketTolerance.addEventListener('input', updateBucketToleranceLabel);
+    bucketStrength.addEventListener('input', updateBucketStrengthLabel);
+    bucketReplaceBy.addEventListener('change', updateBucketReplaceByUI);
+
+    resizeMode.addEventListener('change', () => {
+      updateResizeModeUI();
+      if (resizeMode.value === 'percent') {
+        resizePercent.focus();
+      } else {
+        resizeW.focus();
+      }
+    });
+
+    function onResizeFieldInput(source) {
+      state.resizeSource = source;
+      if (keepRatio.checked && resizeMode.value === 'dimensions') {
+        syncResizeFromSource(source);
+      }
+    }
+
+    function onResizeFieldCommit(source) {
+      state.resizeSource = source;
+      if (keepRatio.checked && resizeMode.value === 'dimensions') {
+        syncResizeFromSource(source);
+      }
+    }
+
+    resizeW.addEventListener('focus', () => state.resizeSource = 'w');
+    resizeH.addEventListener('focus', () => state.resizeSource = 'h');
+    resizeW.addEventListener('input', () => onResizeFieldInput('w'));
+    resizeH.addEventListener('input', () => onResizeFieldInput('h'));
+    resizeW.addEventListener('change', () => onResizeFieldCommit('w'));
+    resizeH.addEventListener('change', () => onResizeFieldCommit('h'));
+    [resizeW, resizeH].forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          commitResizeFromInputs();
+        }
+      });
+    });
+    resizePercent.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        commitResizeFromInputs();
+      }
+    });
+
+    resizeBtn.addEventListener('click', commitResizeFromInputs);
+
+    resizePercent.addEventListener('input', () => {
+      if (resizeMode.value === 'percent') state.resizeSource = 'p';
+    });
+
+    resetCropBtn.addEventListener('click', () => {
+      if (!state.loaded) return;
+      resetCropBox();
+      setStatus('Crop box reset.');
+    });
+
+    applyCropBtn.addEventListener('click', applyCropBox);
+
+    pickTargetBtn.addEventListener('click', () => {
+      if (!state.loaded) return;
+      setPickingColor(!state.pickingColor);
+    });
+
+    targetColor.addEventListener('input', () => {
+      syncPickedHex();
+      renderPickZoom();
+    });
+
+    replaceAll.addEventListener('change', () => {
+      setStatus(replaceAll.checked ? 'Replace All enabled.' : 'Replace All disabled. Replacement will use the selected seed point.');
+    });
+
+    replaceAlpha.addEventListener('input', updateReplaceAlphaLabel);
+    edgeFeather.addEventListener('input', updateEdgeFeatherLabel);
+
+    repairToggle.addEventListener('change', () => {
+      state.repairOverlay = repairToggle.checked;
+      render();
+    });
+    repairOpacity.addEventListener('input', () => {
+      updateRepairOpacityLabel();
+      render();
+    });
+    brushOpacity.addEventListener('input', () => {
+      updateBrushOpacityLabel();
+      render();
+    });
+    repairInvert.addEventListener('change', () => {
+      state.repairInvert = repairInvert.checked;
+      render();
+    });
+
+    replaceBtn.addEventListener('click', () => {
+      pushHistory();
+      replaceTargetColor({ opacity: Number(replaceAlpha.value) / 100 });
+    });
+
+    chromaBtn.addEventListener('click', () => {
+      pushHistory();
+      applyChromaKey();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (!state.loaded) return;
+      pushHistory();
+      clearImage();
+    });
+
+    downloadBtn.addEventListener('click', downloadPNG);
+
+    fitBtn.addEventListener('click', () => {
+      render();
+      setStatus('View refitted.');
+    });
+
+    window.addEventListener('resize', render);
+
+    function initEmptyCanvas() {
+      updateResizeModeUI();
+      syncPickedHex();
+      updateReplaceAlphaLabel();
+      updateEdgeFeatherLabel();
+      updateBrushOpacityLabel();
+      updateRepairOpacityLabel();
+      pickerFloating.classList.remove('on');
+      renderPickZoom();
+      updateBucketToleranceLabel();
+      updateBucketStrengthLabel();
+      updateBucketReplaceByUI();
+      updateBucketEnabledUI();
+      workCanvas.width = 1600;
+      workCanvas.height = 1000;
+      originalCanvas.width = 1600;
+      originalCanvas.height = 1000;
+      wctx.fillStyle = '#ffffff';
+      octx.fillStyle = '#ffffff';
+      wctx.fillRect(0, 0, workCanvas.width, workCanvas.height);
+      octx.fillRect(0, 0, originalCanvas.width, originalCanvas.height);
+      state.loaded = false;
+      state.history = [snapshotCanvases()];
+      state.redo = [];
+      resizeInputsToImage();
+      updateUndoRedo();
+      render();
+    }
+
+    initEmptyCanvas();
+  </script>
+
+
+</body>
+</html>
