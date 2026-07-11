@@ -6,12 +6,12 @@
   "data": [
     {
       "name": "Image Editor",
-      "desc": "Image editor(background remover/replacer,image Cropping and Resizing. took me 30 minutes to make)",
+      "desc": "Image editor(background remover/replacer,image Cropping / Resizing, .\n took me 30 minutes to make)",
       "url": "https://cardhollow.github.io/tools/image"
     },
     {
       "name": "Color Tool",
-      "desc": "Color Picker, Converter, Gradients, Palette etc",
+      "desc": "Color Picker, Converter, Gradients, Palette and Color Picker from image etc",
       "url": "https://cardhollow.github.io/tools/color"
     },
     {
