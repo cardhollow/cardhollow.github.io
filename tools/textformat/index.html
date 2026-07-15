@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basic Editor</title>
+
+<style>
+html, body {
+    margin: 0;
+    height: 100%;
+    font-family: sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+#txt {
+    flex: 1;
+    width: 100%;
+    resize: none;
+    box-sizing: border-box;
+}
+
+.controls {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+}
+
+button {
+    padding: 6px 12px;
+}
+</style>
+</head>
+
+<body>
+
+<textarea id="txt" placeholder="Enter text here..."></textarea>
+
+<div class="controls">
+    <button onclick="onFormat()">Format</button>
+    <button onclick="openHelp()">Help</button>
+    <button onclick="usage()">Usage</button>
+</div>
+
+<script src="https://js.puter.com/v2/"></script>
+
+<script>
+async function onFormat() {
+    const txt = document.getElementById("txt");
+
+    txt.disabled = true;
+
+    try {
+        txt.value = await formatText(txt.value);
+    } catch (err) {
+        alert(err);
+    }
+
+    txt.disabled = false;
+}
+
+async function formatText(text) {
+    const response = await puter.ai.chat([
+        {
+    role: "system",
+    content: `
+You are a helpful AI whose only task is to generate source code.
+
+Rules:
+- Your responses must consist of ONLY the requested code.
+- Never wrap the code in Markdown or triple backticks.
+- Never add explanations, introductions, notes, comments outside the requested code, or apologies.
+- If the user asks for anything that is not code, politely refuse by replying exactly:
+  "This tool only generates code."
+- When the user provides existing code, preserve their style, formatting, variable names, and structure. Only add or modify what is necessary to fulfill the request.
+- Do not rewrite or refactor code unless explicitly requested.
+- Prefer simple, beginner-friendly solutions over advanced techniques.
+- Avoid unnecessary abstractions, libraries, or optimizations.
+- Do not insert emojis, decorative comments, or AI signatures.
+- Produce code that looks like it was written by a human programmer.
+- If multiple files would normally be required, generate only the code the user specifically requested.
+- Never invent extra features that were not requested.
+`
+},
+        {
+            role: "user",
+            content: text
+        }
+    ]);
+
+    return response.message.content;
+}
+
+function openHelp() {
+    const win = window.open("", "_blank");
+
+    win.document.write(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Help</title>
+<style>
+body{
+    font-family:Arial,sans-serif;
+    margin:40px;
+    line-height:1.7;
+}
+
+h1,h2{
+    margin-top:0;
+}
+
+.warn{
+    color:#b00020;
+    font-weight:bold;
+}
+
+.good{
+    color:#006400;
+    font-weight:bold;
+}
+
+.note{
+    background:#fff4cc;
+    border-left:6px solid orange;
+    padding:12px;
+    margin:20px 0;
+}
+
+.danger{
+    background:#ffe5e5;
+    border-left:6px solid red;
+    padding:12px;
+    margin:20px 0;
+}
+</style>
+</head>
+<body>
+
+<h1>AI Code Formatter</h1>
+
+<p>
+This application exists for <span class="good">one purpose:</span> to
+<strong>reduce repetitive coding tasks</strong>. It is designed to save you
+from repeatedly typing boilerplate code—not to replace your learning.
+</p>
+
+<h2>How to Use</h2>
+
+<ol>
+    <li>Paste your code into the input box.</li>
+    <li>Click <strong>Format</strong>.</li>
+    <li>Wait for the AI to finish.</li>
+    <li>The contents of the input box will be replaced with the generated result.</li>
+</ol>
+
+<div class="danger">
+<b>⚠ STOP.</b><br><br>
+
+If you opened this application because you're looking for a way to
+<strong>cheat</strong>, skip assignments, or avoid learning...
+<strong>this is the wrong tool.</strong>
+</div>
+
+<p>
+<span class="warn">This application is NOT for cheating.</span>
+It is only for reducing repetitive work while coding.
+</p>
+
+<p>
+<span class="warn">This application ONLY generates code.</span>
+It will <strong>NOT</strong> explain the code.
+It will <strong>NOT</strong> teach programming.
+It will <strong>NOT</strong> answer your homework.
+It will <strong>NOT</strong> help you understand concepts.
+It simply takes your input and returns generated code.
+</p>
+
+<div class="note">
+<b>Ask yourself honestly:</b><br><br>
+
+Are you using this to save time on repetitive work...
+or are you trying to avoid learning?
+
+Only you know the answer.
+</div>
+
+<p>
+Copying code without understanding it may finish today's task,
+but it won't help you solve tomorrow's problem.
+The knowledge you skip today becomes the obstacle you face later.
+</p>
+
+<p>
+<span class="good">Use this application as a productivity tool—not as a shortcut around learning.</span>
+</p>
+
+<hr>
+
+<p>
+<strong>Remember:</strong><br>
+AI can generate code.<br>
+<strong>You</strong> are the one who has to understand it.
+</p>
+
+</body>
+</html>
+    `);
+
+    win.document.close();
+}
+
+function usage() {
+    window.open("https://puter.com", "_blank");
+}
+</script>
+
+</body>
+</html>
