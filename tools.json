@@ -18,6 +18,12 @@
       "name": "HTML COMPILER",
       "desc": "HTML IDE",
       "url": "https://cardhollow.github.io/htmlCompiler"
+    },
+    {
+      "name": "Text Formatter",
+      "desc": "Click the help one's you open the application",
+      "url": "https://cardhollow.github.io/tools/textformat"
+
     }
   ]
 }
