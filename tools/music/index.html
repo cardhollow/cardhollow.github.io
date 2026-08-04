@@ -67,7 +67,7 @@
 
   z-index: 999;
 
-  /* ðŸ”¥ KEY FIXES */
+  /* 🔥 KEY FIXES */
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -418,10 +418,10 @@
   <div id="exportModal" class="modal-box">
     <h2>EXPORT SESSION</h2>
     <p style="font-size:.8rem; color:#888; text-align:center;">Select format. Video/audio bounce in real time.</p>
-    <button class="modal-btn export-btn" id="exportJSON">ðŸ“ Export as JSON</button>
-    <button class="modal-btn export-btn" id="exportJS">ðŸ“Ÿ Export as JavaScript</button>
-    <button class="modal-btn export-btn" id="exportVideo">ðŸŽ¥ Export as Video (.webm)</button>
-    <button class="modal-btn export-btn" id="exportAudio">ðŸŽµ Export as Audio (.webm)</button>
+    <button class="modal-btn export-btn" id="exportJSON">📁 Export as JSON</button>
+    <button class="modal-btn export-btn" id="exportJS">📟 Export as JavaScript</button>
+    <button class="modal-btn export-btn" id="exportVideo">🎥 Export as Video (.webm)</button>
+    <button class="modal-btn export-btn" id="exportAudio">🎵 Export as Audio (.webm)</button>
     <button class="close-modal" id="closeExportModal">Cancel</button>
   </div>
 </div>
@@ -511,21 +511,21 @@
   
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
     <div style="display:flex; gap: 10px; align-items:center;">
-      <button class="tool-btn" id="btnTogglePadRecord" style="border-color:var(--red); color:var(--red);">ðŸ”´ REC: OFF</button>
-      <button class="tool-btn" id="btnTogglePadEdit" style="border-color:var(--blue); color:var(--blue);">âœï¸ EDIT: OFF</button>
+      <button class="tool-btn" id="btnTogglePadRecord" style="border-color:var(--red); color:var(--red);">🔴 REC: OFF</button>
+      <button class="tool-btn" id="btnTogglePadEdit" style="border-color:var(--blue); color:var(--blue);">✏️ EDIT: OFF</button>
       <span style="color:#aaa; font-size:0.8rem; margin-left:10px;">(Pads auto-sync with Tracks. Click Edit to assign keys or rearrange)</span>
     </div>
-    <button class="tool-btn" id="btnClosePadMode">âœ– Close Pads</button>
+    <button class="tool-btn" id="btnClosePadMode">✖ Close Pads</button>
   </div>
   
   <div id="pad-edit-panel" style="display:none; margin-bottom: 15px; padding: 10px; background: rgba(0,170,255,0.08); border: 1px solid var(--blue); border-radius: 8px; gap: 15px; align-items:center;">
-    <span style="color:var(--blue); font-weight:bold;">âš™ï¸ PAD: <span id="padEditName">None</span></span>
+    <span style="color:var(--blue); font-weight:bold;">⚙️ PAD: <span id="padEditName">None</span></span>
     <label style="color:#aaa;">Assign Keyboard Key:</label>
     <input type="text" id="padKeyInp" maxlength="1" placeholder="-" style="width:50px; height:35px; text-align:center; font-size:1.1rem; font-weight:bold; background:#000; color:var(--green); border:1px solid #555; border-radius:4px; text-transform:uppercase;">
     
     <div style="margin-left: auto; display: flex; gap: 5px;">
-      <button class="tool-btn" id="btnMovePadLeft" style="font-size:1rem; padding:2px 8px;">â¬…ï¸ Move</button>
-      <button class="tool-btn" id="btnMovePadRight" style="font-size:1rem; padding:2px 8px;">Move âž¡ï¸</button>
+      <button class="tool-btn" id="btnMovePadLeft" style="font-size:1rem; padding:2px 8px;">⬅️ Move</button>
+      <button class="tool-btn" id="btnMovePadRight" style="font-size:1rem; padding:2px 8px;">Move ➡️</button>
     </div>
   </div>
 
@@ -536,22 +536,22 @@
 <div id="editor-container">
   <div id="editor-drag-bar"></div>
   <div id="toolbar">
-    <button class="tool-btn play" id="btnPlay">â–¶ PLAY</button>
-    <button class="tool-btn stop" id="btnStop">â–  STOP</button>
+    <button class="tool-btn play" id="btnPlay">▶ PLAY</button>
+    <button class="tool-btn stop" id="btnStop">■ STOP</button>
     <button class="tool-btn clear" id="btnClearTrack">Clear</button>
     <button class="tool-btn" id="btnAddTrack">+ ADD TRACK</button>
       
     <div class="toolbar-group">
         <button id="btnPasteClip" class="tool-btn">Paste</button> 
-    	<button class="tool-btn" id="btnRandomGen" style="border-color:var(--pink); color:var(--pink);">ðŸŽ² Generate Random</button>
-    	<button class="tool-btn" id="btnOpenPadMode" style="border-color:var(--pink); color:var(--pink);">ðŸŽ› PAD MODE</button>
+    	<button class="tool-btn" id="btnRandomGen" style="border-color:var(--pink); color:var(--pink);">🎲 Generate Random</button>
+    	<button class="tool-btn" id="btnOpenPadMode" style="border-color:var(--pink); color:var(--pink);">🎛 PAD MODE</button>
     </div>
      
     <div class="toolbar-group">
-      <button class="tool-btn io" id="btnSamplesModal" style="border-color:var(--orange); color:var(--orange); background:rgba(255,170,0,.1);">ðŸŽµ SAMPLES</button>
-      <button class="tool-btn io" id="btnImport">ðŸ“‚ IMPORT JSON</button>
-      <button class="tool-btn io" id="btnImportMidi">ðŸŽ¹ IMPORT MIDI</button>
-      <button class="tool-btn io" id="btnExportModal">ðŸ’¾ EXPORT</button>
+      <button class="tool-btn io" id="btnSamplesModal" style="border-color:var(--orange); color:var(--orange); background:rgba(255,170,0,.1);">🎵 SAMPLES</button>
+      <button class="tool-btn io" id="btnImport">📂 IMPORT JSON</button>
+      <button class="tool-btn io" id="btnImportMidi">🎹 IMPORT MIDI</button>
+      <button class="tool-btn io" id="btnExportModal">💾 EXPORT</button>
       <button class="tool-btn io" id="saveBtn">Save</button>
       <button class="tool-btn io" id="loadBtn">Load</button>
       <input type="file" id="importFile" accept=".json" style="display:none;">
@@ -584,7 +584,7 @@
     </div>
 
     <div class="toolbar-group" style="border-color:var(--orange);">
-      <button class="tool-btn" id="btnMotifMode" style="border-color:var(--orange); color:var(--orange);">ðŸ–Œ MOTIF BRUSH: OFF</button>
+      <button class="tool-btn" id="btnMotifMode" style="border-color:var(--orange); color:var(--orange);">🖌 MOTIF BRUSH: OFF</button>
       <select id="motifTypeSel">
         <option value="header">Header Bracket</option>
         <option value="repeat">Repeat Node</option>
@@ -607,7 +607,7 @@
       <button id="btnZoomIn" class="tool-btn" title="Zoom In">+</button>
     </div>
 
-    <div class="hint">Right-drag to select â€¢ Right-click for clipboard menu â€¢ Ctrl/Cmd+C/X/V â€¢ Z/Y undo/redo</div>
+    <div class="hint">Right-drag to select • Right-click for clipboard menu • Ctrl/Cmd+C/X/V • Z/Y undo/redo</div>
   </div>
 
   <div id="timeline-area">
@@ -2747,7 +2747,7 @@ function resolveEngine(track) {
     }
 
     if (cellData.marker === 'header') {
-      cell.innerHTML = `<span style="color:#00ffaa; font-size:9px; font-weight:700; position:absolute; top:2px; left:2px; z-index:2; text-shadow:0 0 3px #000; line-height:1;">H<br/>x${cellData.m_rep===-1?'âˆž':cellData.m_rep}</span>`;
+      cell.innerHTML = `<span style="color:#00ffaa; font-size:9px; font-weight:700; position:absolute; top:2px; left:2px; z-index:2; text-shadow:0 0 3px #000; line-height:1;">H<br/>x${cellData.m_rep===-1?'∞':cellData.m_rep}</span>`;
       cell.style.borderLeft = '2px solid #00ffaa';
       cell.style.borderRight = '';
     } else if (cellData.marker === 'repeat') {
@@ -2783,7 +2783,7 @@ function resolveEngine(track) {
 
       const nameRow = document.createElement('div');
       nameRow.className = 'track-name';
-      nameRow.innerHTML = `TRK ${trackIndex + 1} <span style="cursor:pointer; color:#ff0055" title="Delete track">âœ–</span>`;
+      nameRow.innerHTML = `TRK ${trackIndex + 1} <span style="cursor:pointer; color:#ff0055" title="Delete track">✖</span>`;
       nameRow.querySelector('span').onclick = (e) => { e.stopPropagation(); deleteTrack(track.id); };
 
       const controls = document.createElement('div');
@@ -2818,7 +2818,7 @@ function resolveEngine(track) {
       if (track.type === 'custom' && track.id === selectedTrackId) {
         const customEditBtn = document.createElement('button');
         customEditBtn.className = 'custom-edit-btn';
-        customEditBtn.textContent = 'âš™ EDIT';
+        customEditBtn.textContent = '⚙ EDIT';
         customEditBtn.onclick = () => openCustomModal(track);
         controls.appendChild(customEditBtn);
       }
@@ -2826,7 +2826,7 @@ function resolveEngine(track) {
       header.appendChild(nameRow);
       header.appendChild(controls);
       header.onclick = (e) => {
-  // ðŸš« Ignore clicks coming from controls (select, buttons, etc.)
+  // 🚫 Ignore clicks coming from controls (select, buttons, etc.)
   if (e.target.closest('select') || 
       e.target.closest('button') || 
       e.target.closest('input')) {
@@ -2938,7 +2938,7 @@ function resolveEngine(track) {
   }
 
   function deleteTrack(id) {
-    if (!confirm(`âš ï¸ WARNING: Do you really want to delete ${id}?`)) return;
+    if (!confirm(`⚠️ WARNING: Do you really want to delete ${id}?`)) return;
     pushHistory();
     tracks = tracks.filter(t => t.id !== id);
     selectedCells = new Set([...selectedCells].filter(key => !key.startsWith(id + ':')));
@@ -2947,7 +2947,7 @@ function resolveEngine(track) {
   }
 
   function clearAllData() {
-    if (!confirm('âš ï¸ WARNING: Clear all notes and motifs?')) return;
+    if (!confirm('⚠️ WARNING: Clear all notes and motifs?')) return;
     pushHistory();
     tracks.forEach(track => {
       track.pattern = defaultPattern();
@@ -3473,11 +3473,11 @@ async function importMidiFileToSession(file) {
   document.body.appendChild(el);
 
   function showAutoSave() {
-    // enter (left â†’ visible)
+    // enter (left → visible)
     el.style.opacity = '1';
     el.style.transform = 'translateX(0px)';
 
-    // exit after delay (fade â†’ right)
+    // exit after delay (fade → right)
     setTimeout(() => {
       el.style.opacity = '0';
       el.style.transform = 'translateX(-40px)';
@@ -3527,7 +3527,7 @@ loadBtn.addEventListener('click', loadLocalJSON);
     };
 
     isBouncing = true;
-    document.getElementById('titleText').innerText = 'ðŸ”´ BOUNCING...';
+    document.getElementById('titleText').innerText = '🔴 BOUNCING...';
     document.getElementById('titleText').style.color = '#ff0055';
 
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -3932,7 +3932,7 @@ if (e.code === 'Space') {
     if (ctrl && key === 'z') { e.preventDefault(); undo(); return; }
     if (ctrl && key === 'y') { e.preventDefault(); redo(); return; }
 
-    // â›” this was blocking space before
+    // ⛔ this was blocking space before
     if (!selectedCells.size) return;
 
     if (ctrl && key === 'c') { e.preventDefault(); copySelection(); return; }
@@ -3969,7 +3969,7 @@ if (e.code === 'Space') {
       sampleJSON.forEach(sample => {
         const btn = document.createElement('button');
         btn.className = 'modal-btn sample-btn';
-        btn.textContent = `â–¶ Load Sample: ${sample.name || 'Beat'}`;
+        btn.textContent = `▶ Load Sample: ${sample.name || 'Beat'}`;
         btn.onclick = () => {
           if (confirm('Loading a sample will erase your current edit. Continue?')) {
             loadSession(sample);
@@ -4073,7 +4073,7 @@ if (e.code === 'Space') {
 
   document.getElementById('btnMotifMode').onclick = e => {
     motifBrushActive = !motifBrushActive;
-    e.target.innerText = motifBrushActive ? 'ðŸ–Œ MOTIF BRUSH: ON' : 'ðŸ–Œ MOTIF BRUSH: OFF';
+    e.target.innerText = motifBrushActive ? '🖌 MOTIF BRUSH: ON' : '🖌 MOTIF BRUSH: OFF';
     e.target.classList.toggle('active-brush', motifBrushActive);
   };
   document.getElementById('motifTypeSel').addEventListener('change', updateMotifUI);
@@ -4569,7 +4569,7 @@ let width = 0, height = 0, sceneScale = 1;
   
   document.getElementById('btnPasteClip').onclick = async () => {
   // Warning as requested
-  const proceed = confirm("âš ï¸ WARNING: This will wipe out the current track data. Continue?");
+  const proceed = confirm("⚠️ WARNING: This will wipe out the current track data. Continue?");
   if (!proceed) return;
 
   try {
@@ -4592,7 +4592,7 @@ let width = 0, height = 0, sceneScale = 1;
   const numTracks = tracks.length;
   
   // 2. Give a warning because it will clear all things
-  if (!confirm(`âš ï¸ WARNING: This will clear all existing notes across your ${numTracks} tracks to generate a random sequence. Are you sure?`)) {
+  if (!confirm(`⚠️ WARNING: This will clear all existing notes across your ${numTracks} tracks to generate a random sequence. Are you sure?`)) {
     return;
   }
 
@@ -4682,7 +4682,7 @@ function renderPads() {
     if (trackId === selectedPadId && isPadEditing) cell.classList.add('editing');
     
     const trackColor = INSTRUMENT_DB[track.type]?.color || '#fff';
-    const assignedKey = padSettings[trackId].key ? padSettings[trackId].key : 'â€¢';
+    const assignedKey = padSettings[trackId].key ? padSettings[trackId].key : '•';
     
     cell.innerHTML = `
       <div class="pad-key" style="color:${trackColor}">${assignedKey}</div>
@@ -4806,13 +4806,13 @@ window.addEventListener('keydown', (e) => {
 // UI Toggles
 document.getElementById('btnTogglePadRecord').addEventListener('click', (e) => {
   isPadRecording = !isPadRecording;
-  e.target.innerText = isPadRecording ? 'ðŸ”´ REC: ON' : 'ðŸ”´ REC: OFF';
+  e.target.innerText = isPadRecording ? '🔴 REC: ON' : '🔴 REC: OFF';
   e.target.style.background = isPadRecording ? 'rgba(255,0,85,0.2)' : 'transparent';
 });
 
 document.getElementById('btnTogglePadEdit').addEventListener('click', (e) => {
   isPadEditing = !isPadEditing;
-  e.target.innerText = isPadEditing ? 'âœï¸ EDIT: ON' : 'âœï¸ EDIT: OFF';
+  e.target.innerText = isPadEditing ? '✏️ EDIT: ON' : '✏️ EDIT: OFF';
   e.target.style.background = isPadEditing ? 'rgba(0,170,255,0.2)' : 'transparent';
   if (!isPadEditing) {
     selectedPadId = null;
@@ -4829,7 +4829,7 @@ document.getElementById('btnOpenPadMode').addEventListener('click', () => {
 document.getElementById('btnClosePadMode').addEventListener('click', () => {
   document.getElementById('pad-mode-container').style.display = 'none';
   isPadEditing = false;
-  document.getElementById('btnTogglePadEdit').innerText = 'âœï¸ EDIT: OFF';
+  document.getElementById('btnTogglePadEdit').innerText = '✏️ EDIT: OFF';
   document.getElementById('btnTogglePadEdit').style.background = 'transparent';
   selectedPadId = null;
   updatePadEditorUI();
