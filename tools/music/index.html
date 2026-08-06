@@ -422,7 +422,8 @@
     <button class="modal-btn export-btn" id="exportJS">📟 Export as JavaScript</button>
     <button class="modal-btn export-btn" id="exportVideo">🎥 Export as Video (.webm)</button>
     <button class="modal-btn export-btn" id="exportAudio">🎵 Export as Audio (.webm)</button>
-    <button class="close-modal" id="closeExportModal">Cancel</button>
+        <button class="modal-btn export-btn" id="exportMidi">🎹 Export as MIDI (.mid)</button>
+<button class="close-modal" id="closeExportModal">Cancel</button>
   </div>
 </div>
 
@@ -568,6 +569,7 @@
       <select id="drawType">
         <option value="Constant">Constant (Terrain)</option>
         <option value="Party">Party Mode</option>
+              <option value="None">None</option>
       </select>
       <button class="tool-btn" style="cursor: zoom-in" onclick="
   const elem = document.documentElement;
@@ -3125,7 +3127,110 @@ function resolveEngine(track) {
     document.body.appendChild(a); a.click(); a.remove();
     document.getElementById('exportModalOverlay').style.display = 'none';
   }
-    
+
+
+function exportAsMidi() {
+  const session = currentSessionSnapshot();
+  const ticksPerBeat = 480;
+  const stepCount = Math.max(1, Number(session.steps) || 1);
+  const bpm = Math.max(1, Number(session.bpm) || 120);
+  const ticksPerStep = Math.max(1, Math.round((ticksPerBeat * 4) / stepCount));
+
+  const tracks = Array.isArray(session.tracks) ? session.tracks : [];
+  const trackChunks = [];
+
+  function u16(n) {
+    return [(n >> 8) & 0xFF, n & 0xFF];
+  }
+
+  function u32(n) {
+    return [(n >>> 24) & 0xFF, (n >>> 16) & 0xFF, (n >>> 8) & 0xFF, n & 0xFF];
+  }
+
+  function varLen(value) {
+    let buffer = value & 0x7F;
+    while ((value >>= 7)) {
+      buffer <<= 8;
+      buffer |= ((value & 0x7F) | 0x80);
+    }
+    const out = [];
+    while (true) {
+      out.push(buffer & 0xFF);
+      if (buffer & 0x80) buffer >>= 8;
+      else break;
+    }
+    return out;
+  }
+
+  function textBytes(str) {
+    return Array.from(new TextEncoder().encode(String(str || '')));
+  }
+
+  function addMetaEvent(events, delta, type, data) {
+    events.push(...varLen(delta), 0xFF, type, ...varLen(data.length), ...data);
+  }
+
+  function addMidiEvent(events, delta, status, data1, data2) {
+    events.push(...varLen(delta), status & 0xFF, data1 & 0x7F, data2 & 0x7F);
+  }
+
+  const tempoEvents = [];
+  addMetaEvent(tempoEvents, 0, 0x03, textBytes(session.name || 'Infinite DAW Studio'));
+  const mpqn = Math.max(1, Math.round(60000000 / bpm));
+  addMetaEvent(tempoEvents, 0, 0x51, [(mpqn >> 16) & 0xFF, (mpqn >> 8) & 0xFF, mpqn & 0xFF]);
+  addMetaEvent(tempoEvents, 0, 0x58, [4, 2, 24, 8]);
+  addMetaEvent(tempoEvents, 0, 0x2F, []);
+  trackChunks.push([0x4D, 0x54, 0x72, 0x6B, ...u32(tempoEvents.length), ...tempoEvents]);
+
+  tracks.forEach((track, trackIndex) => {
+    const pattern = Array.isArray(track?.pattern) ? track.pattern : [];
+    const channel = trackIndex % 16;
+    const midiNote = Math.max(0, Math.min(127, Number(track?.midiNote ?? 60) || 60));
+    const noteOnStatus = 0x90 | channel;
+    const noteOffStatus = 0x80 | channel;
+    const events = [];
+    let lastTick = 0;
+
+    addMetaEvent(events, 0, 0x03, textBytes(track?.id || `track-${trackIndex + 1}`));
+
+    for (let step = 0; step < stepCount; step++) {
+      const cell = pattern[step] || {};
+      if (!cell.note) continue;
+
+      const startTick = step * ticksPerStep;
+      const durationTicks = Math.max(1, Math.round(ticksPerStep * 0.9));
+      const velocity = Math.max(1, Math.min(127, Math.round((Number(cell.velocity ?? 1) || 1) * 100)));
+
+      addMidiEvent(events, Math.max(0, startTick - lastTick), noteOnStatus, midiNote, velocity);
+      addMidiEvent(events, durationTicks, noteOffStatus, midiNote, 0);
+      lastTick = startTick + durationTicks;
+    }
+
+    addMetaEvent(events, 0, 0x2F, []);
+    trackChunks.push([0x4D, 0x54, 0x72, 0x6B, ...u32(events.length), ...events]);
+  });
+
+  const header = [
+    0x4D, 0x54, 0x68, 0x64,
+    0x00, 0x00, 0x00, 0x06,
+    0x00, 0x01,
+    ...u16(trackChunks.length),
+    ...u16(ticksPerBeat)
+  ];
+
+  const bytes = new Uint8Array([...header, ...trackChunks.flat()]);
+  const blob = new Blob([bytes], { type: 'audio/midi' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = getExportFilename('mid');
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  document.getElementById('exportModalOverlay').style.display = 'none';
+}
+
   const saveBtn = document.getElementById('saveBtn');
 const loadBtn = document.getElementById('loadBtn');
 
@@ -3955,6 +4060,7 @@ if (e.code === 'Space') {
   document.getElementById('exportJSON').addEventListener('click', exportAsJSON);
   document.getElementById('exportVideo').addEventListener('click', () => startBounce('video'));
   document.getElementById('exportAudio').addEventListener('click', () => startBounce('audio'));
+  document.getElementById('exportMidi').addEventListener('click', exportAsMidi);
   
   document.getElementById('btnExportModal').addEventListener('click', () => document.getElementById('exportModalOverlay').style.display = 'flex');
   document.getElementById('closeExportModal').addEventListener('click', () => document.getElementById('exportModalOverlay').style.display = 'none');
@@ -4294,6 +4400,14 @@ let width = 0, height = 0, sceneScale = 1;
     // 4. Check the selected value from the dropdown
     const drawTypeSelect = document.getElementById('drawType');
     const currentDrawType = drawTypeSelect ? drawTypeSelect.value : 'Constant';
+
+    // =====================================================================
+    // MODE: NONE
+    // =====================================================================
+    if (currentDrawType === 'None') {
+        ctxCanvas.clearRect(0, 0, width, height);
+        return;
+    }
 
     // =====================================================================
     // MODE: PARTY
