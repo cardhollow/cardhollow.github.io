@@ -1,7 +1,7 @@
 {
   "metadata": {
     "message": "YOU'RE NOT SUPPOSED TO BE HERE",
-    "lastUpdate": "Friday, July 10, 2026 at 9:13:29 AM GMT+8"
+    "lastUpdate": "Friday, August 7, 2026 at 7:15:40 PM GMT+8"
   },
   "data": [
     {
@@ -23,6 +23,11 @@
       "name": "CHAT",
       "desc": "ONLINE CHAT",
       "url": "https://cardhollow.github.io/chat"
+    },
+    {
+      "name": "Learn data Structures",
+      "desc": "Learn var, arr, list, dict etc",
+      "url": "tinyurl.com/linazasite/learn/data-structures/"
     }
   ]
 }
