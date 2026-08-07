@@ -1,7 +1,7 @@
 {
   "metadata": {
     "message": "YOU'RE NOT SUPPOSED TO BE HERE",
-    "lastUpdate": "Friday, August 7, 2026 at 7:15:40 PM GMT+8"
+    "lastUpdate": "Friday, August 7, 2026 at 7:17:10 PM GMT+8"
   },
   "data": [
     {
@@ -27,7 +27,7 @@
     {
       "name": "Learn data Structures",
       "desc": "Learn var, arr, list, dict etc",
-      "url": "tinyurl.com/linazasite/learn/data-structures/"
+      "url": "https://tinyurl.com/linazasite/learn/data-structures/"
     }
   ]
 }
