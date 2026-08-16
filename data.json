@@ -33,11 +33,6 @@
       "name": "MIDI TO NOTEBLOCK",
       "desc": "Convert .mid to minecraft and export",
       "url": "/midi-to-minecraft"
-    },
-    {
-      "name": "UNDEFINED",
-      "desc": "",
-      "url": ""
     }
   ]
 }
