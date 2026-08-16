@@ -253,7 +253,8 @@ input {
 </div>
 
 <script>
-const DATA_URL = "https://cardhollow.github.io/data.json";
+const DATA_URL =
+  "https://raw.githubusercontent.com/cardhollow/cardhollow.github.io/main/data.json";
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzV6sqIBX5jdvvgJnOokVOlQFLYjzgX-8vDy65_SE5JKL03gDgCYiGpCMIdzzem3RzHZg/exec";
 
 let projects = [];
@@ -271,12 +272,15 @@ function showToast(message, type = "info") {
 }
 
 async function loadData() {
-  const res = await fetch(DATA_URL + "?t=" + Date.now());
+  const res = await fetch(DATA_URL, {
+    cache: "no-store"
+  });
+
   const json = await res.json();
   projects = json.data || [];
   render();
 }
-
+ 
 function getSelectedItems() {
   return [...selectedIndexes]
     .sort((a, b) => a - b)
